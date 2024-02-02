@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>juju</title>
+
+
+   <style>
+      body {
+
+         font-family: 'Arial', sans-serif;
+        
+       
+         background: rgb(196, 42, 42);
+ 
+       
+      }
+
+
+    
+          /*----------------------MODAL DEFAULT-----------------*/
+
+
+      .bgL{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.222); /* Fundo escuro semi-transparente */
+            justify-content: center;
+            align-items: center;
+        }
+        .bgconteudo{
+            color: rgb(179, 15, 67);
+            padding: 30px;
+            font-size: 30px;
+            width: 340px;
+            height: 100%;
+            max-height: 120px;
+          
+            margin: 50px auto;
+            background-color: #e0b8b8;
+            
+            text-align: center;
+            overflow-x: hidden;
+            border-radius: 30px;
+            -webkit-box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
+-moz-box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
+box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
+
+        }
+
+
+
+
+
+
+    /*----------------------CONTAINERS GERAIS-----------------*/
+      .img-coracao{
+
+        width: 100%;
+        height: 100%;
+        margin: 100px auto;
+        min-height: 500px;
+        text-align: center;
+background-image:url('co.png');
+      background-size: contain; /* Define o tamanho da imagem para cobrir metade da div */
+      background-position: center;
+      background-repeat: no-repeat;
+
+
+      }
+
+      .titulo{
+        color: white;
+        font-size: 22px;
+      } 
+      .titulo2{
+        font-size: 15px;
+        position: relative;
+        top: 150px;
+        color: white;
+        font-size: 22px;
+      }
+
+
+      </style>
+      </head>
+
+      <body>
+
+
+        <div class="img-coracao">
+
+            <h1 class="titulo" id="tempo-restante"></h1>
+            <h1 class="titulo2" style="display: none;" id="iddotit" onclick="abrirmodal()">Clique aqui</h1>
+        </div>
+
+
+        <div class="bgL" id="modal" style="display: none;">
+            <div class="bgconteudo">
+                <p>te amo meu bolinho!!!</p>
+            </div>
+        </div>
+
+
+        <script>
+
+
+
+            var select3 = document.getElementById("iddotit");
+        
+            setTimeout(() => {
+                
+                select3.style.display = "initial"
+
+            }, "1000");
+
+
+        function abrirmodal(){
+            console.log("sd")
+            var select = document.getElementById("modal");
+            select.style.display = "initial"
+            setTimeout(() => {
+                
+            select.style.display = "none"
+            }, "5000");
+        }
+
+        function atualizarContador() {
+    var dataAtual = new Date();
+    var dataTermino = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate(), 19, 30, 0); // Defina a hora de término para 19:30
+
+    var diferenca = dataTermino - dataAtual;
+
+        var segundosRestantes = Math.floor(diferenca / 1000);
+        var minutos = Math.floor(segundosRestantes / 60);
+        var segundos = segundosRestantes % 60;
+        document.getElementById("tempo-restante").innerHTML = "Quando falta para eu ver minha juju: " + minutos + "m " + segundos + "s";
+  
+}
+
+var contadorInterval = setInterval(atualizarContador, 1000);
+
+
+        </script>
+
+
+      </body>
+      </html>
