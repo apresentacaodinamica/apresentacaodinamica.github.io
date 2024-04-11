@@ -1,158 +1,1082 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>juju</title>
-
-
+   <title>Entidades</title>
    <style>
       body {
-
          font-family: 'Arial', sans-serif;
+       
+         margin: 0;
+         padding: 80px;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
         
+         
+background:#176c72;
+}
+
+
+.bgL{
+      display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+         justify-content: center;
+         align-items: center;
+}
+
+.bgL2{
+      display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+         justify-content: center;
+         align-items: center;
+}
+
+.bgL3{
+      display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+         justify-content: center;
+         align-items: center;
+}
+
+.msg{
+        width: 300px;
+        text-align: center;
+         height: 100%;
+         max-height: 50px;
+         margin: 50px auto;
+         background-color: #37a337;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.msg p{
+   font-size: 18px;
+   color:white;
+}
+
+
+.msgerro{
+           width: 300px;
+        text-align: center;
+         height: 100%;
+         max-height: 50px;
+         margin: 50px auto;
+         background-color: red;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.msgerro p{
+   font-size: 18px;
+   color:white;
+}
+
+.bgconteudo{
+         width: 350px;
+         height: 100%;
+         max-height: 380px;
+         
+         margin: 50px auto;
+         background-color: #fff;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
        
-         background: rgb(196, 42, 42);
- 
+}
+
+      .loginbtn{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: skyblue;
+         margin: 0 auto;
+         margin-top: 40px;
+         cursor: pointer;
+  }
+.bgconteudolog{
+
+         width: 340px;
+         height: 100%;
+         max-height: 320px;
+         margin: 50px auto;
+         background-color: #fff;
+         padding: 20px;
+         overflow-x: hidden;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
        
+}
+.checkdiv{
+   text-align: center;
+   margin-top: 20px;
+   color: #ccc;
+}
+.check{
+   overflow-x: hidden;
+   position: relative;
+   top: -18px;
+   left: 65px;
+}
+
+
+.bgcontentt{
+   width: 100%;
+   height: 100%;
+     overflow: auto;
+}
+
+
+.bgcontentt2{
+   width: 100%;
+   height: 100%;
+     overflow-x: hidden;
+}
+
+
+.btntrocar{
+     text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: black;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: #ccc;
+         margin: 0 auto;
+      margin-top: 10px;
+         cursor: pointer;
+}
+
+      .container{
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(242, 247, 250, 0.8);
+         
+         height: 100%;
+        padding: 20px;
+        max-width: 800px;
+        min-width: 310px;
+
+}
+      h1 {
+         color: #f7fcfc;
+         text-align: center;
+         margin-bottom: 20px;
       }
+
+      input {
+         padding: 10px;
+         margin-bottom: 10px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+         font-size: 14px;
+         box-sizing: border-box;
+         width: 100%;
+      }
+
+      .positivo {
+         padding: 10px;
+         margin-bottom: 10px;
+         margin-top: 10px;
+         border: none;
+         border-radius: 5px;
+         cursor: pointer;
+         font-size: 14px;
+         transition: background-color 0.3s ease;
+         background-color: #54fa48;
+      }
+
+      .positivo:hover {
+         background-color: #20f511;
+         color: white;
+      }
+
+
+           .azul {
+         padding: 10px;
+         margin-bottom: 10px;
+         margin-top: 10px;
+            margin: 0 auto;
+         border: none;
+         text-align: center;
+         border-radius: 5px;
+         cursor: pointer;
+         font-size: 14px;
+         border: 1px solid white;
+         transition: background-color 0.3s ease;
+         background-color: #2255f0;
+              color: white;
+      }
+
+      .azul:hover {
+         background-color: #2255f0;
+    
+      }
+
+
+        .negativo {
+         padding: 10px;
+         margin-bottom: 10px;
+         border: none;
+         border-radius: 5px;
+         cursor: pointer;
+         font-size: 14px;
+         transition: background-color 0.3s ease;
+         background-color: #f23535;
+      }
+
+      .negativo:hover {
+        
+         color: white;
+      }
+
+
+      .conluidap{
+         color: green;
+      }
+
+      ul {
+         list-style: none;
+         padding: 0;
+         margin: 0;
+         width: 100%;
+
+         padding-bottom: 10px;
+      }
+
+      li {
+         background-color: #fff;
+         border: 1px solid #ddd;
+         border-radius: 5px;
+         margin-bottom: 10px;
+         padding: 10px;
+         display: flex;
+         flex-direction: column;
+         align-items: flex-start;
+         position: relative;
+
+         transition: transform 0.3s ease;
+      }
+
+      li.concluida {
+         background-color: #d2f7d3;
+         border-color: green;
+
+      }
+
+      .descricao-detalhada {
+         margin-top: 5px;
+         color: #535252;
+      }
+      .descricao-datacriacao {
+         margin-top: 25px;
+         color: #777;
+      }
+
+      .descricao-dataconcluida {
+         margin-top: 5px;
+         color: #777;
+      }
+
+ .descricao-solu{
+         margin-top: 15px;
+        color: green;
+      }
+      .descricao{
+         color: black;
+         font-size: 20px;
+      }
+
+
+            .datac, .statusc, .aproveitamentoc{
+         margin-top: 5px;
+         color: #777;
+      }
+
+      button.deletar {
+         background-color: #ff5252;
+         color: white;
+         margin-top: 10px;
+      }
+
+      button.deletar:hover {
+         background-color: #ff1744;
+      }
+
+
+
+      .fechar{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: #ff4545;
+         margin: 10px auto;
+
+      
+         cursor: pointer;
+
+         padding: 5px;
+         height: 23px;
+  }
+
+     .fechar2{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+     
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: rgb(66, 190, 66);
+         margin: 0 auto;
+           margin-top: 70px;
+         cursor: pointer;
+
+         padding: 5px;
+         height: 23px;
+        
+  }
+
+  .fechar p {
+   position: relative;
+   top: -12px;
+  }
+  .fechar2 p {
+   position: relative;
+   top: -12px;
+  }
+
+
+
+
+
+
+
+
+      .tarefasconcluidas p {
+         color: white;
+          font-family: 'Arial', sans-serif;
+      }
+        .tarefasconcluidas span {
+         color: white;
+          font-family: 'Arial', sans-serif;
+      }
+
+
+.btnsair{
+  text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: #ff4545;
+         margin: 0 auto;
+         margin-top: 30px;
+         cursor: pointer;
+}
+
+
+
+      /*animacoes*/
+
+    /* Animação para pontuação salva */
+@keyframes pontuacaoSalvaAnimation {
+   0% { opacity: 0; transform: translateY(30px); }
+   100% { opacity: 1; transform: translateY(0); }
+}
+
+.pontuacaosalva {
+   animation: pontuacaoSalvaAnimation 0.5s ease-out;
+}
+
+/* Animação para tarefas resetadas */
+@keyframes tarefasResetadasAnimation {
+   0% { opacity: 0; transform: translateY(30px); }
+   100% { opacity: 1; transform: translateY(0); }
+}
+
+.tarefasresetadas {
+   animation: tarefasResetadasAnimation 0.5s ease-out;
+}
+
+/* Animação para tarefa adicionada */
+@keyframes tarefaAdicionadaAnimation {
+   0% { opacity: 0; transform: translateY(30px); }
+   100% { opacity: 1; transform: translateY(0); }
+}
+
+.tarefadicionada {
+   animation: tarefaAdicionadaAnimation 0.5s ease-out;
+}
+
+
+.carregando {
+   z-index: 10;
+  
+    border: 15px solid #3498db;
+    border-top: 15px solid white;
+    border-radius: 100%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+    margin: 50px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+
+      @media (max-width: 600px) {
+         li {
+            width: 100%;
+         }
+      }
+   </style>
+</head>
+<body>
+
+<div class="container">
+   <h1 id="nomedocara">Arquivos para as entidades do Banco de dados</h1>
+
+   <input type="text" id="pesquisa" placeholder="Pesquisar por titulo do arquivo">
+
+
+   <button class="positivo" onclick="modalnova()">Adicionar novo arquivo</button>
+   <!--<button class="negativo" onclick="resetarTarefas()">Resetar Tarefas</button>-->
+  
+
+    
+
+
+   <ul id="listaTarefas"></ul>
+
+
+</div><!---container-->
+
+
+
+
+
+
+
+
+<div id="addnova" class="bgL">
+  
+   <div class="bgconteudo">
+
+         <div class="bgcontentt">
+              
+            <!--   <input type="textarea"  placeholder="Resposta da dúvida" style="height: 100px;" rows="10" cols="50"> -->
+         <input type="text" id="descricaoTarefa" placeholder="Título do arquivo">
+
+         <p>Descrição detalhada:</p>
+         <textarea id="descricaoDetalhada" style="resize: none; border-radius: 5px;" rows="6" cols="42">
+                  
+         </textarea>
+         
+            
+         <div class="fechar2" onclick="fazerRequisicaoPost()">
+             <p>Salvar</p>
+
+          </div>
+
+          <div class="fechar" onclick="cancelarsalvar2()">
+             <p>cancelar</p>
+
+          </div>
+
+
+         </div>   
+       
+
+       
+   </div>
+</div>
+
+
+
+<div id="carregandoid" class="bgL">
+  
+   <div class="carregando">
+
+   </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+   <script>
+
+//---------------------variaveis globais--------------------
+
+   var user = null;
+   var total = 0;
+   var concluidas = 0;
+   var tarefasr = null;
+   var datacomparativa = 0;
+   var tarefaIdd = "";
+   var tarefasEncontradas = [];
+
+
+ //location.reload();
+
+fazerRequisicaoGet()
+
+setInterval(() => {
+   pesquisarportitulo()
+}, "1000");
+ 
+
+
+function removerAcentos(texto) {
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function deixarMinusculoSemAcentos(texto) {
+    return removerAcentos(texto).toLowerCase();
+}
+
+
+
+function exibirTarefaspesquisa(pesquisa){
+         const lista = []
+         //console.log(tarefasEncontradas)
+
+
+
+
+         for (let i = 0; i < tarefasEncontradas.length; i++) {
+            var ndescr = tarefasEncontradas[i].descricao
+
+            var descr = deixarMinusculoSemAcentos(ndescr)
+
+
+            //console.log(descr)
+
+           // console.log(descr, pesquisa)
+
+            if(descr.includes(pesquisa)){
+              
+               lista.push(tarefasEncontradas[i])
+            }else{
+               //console.log("sem reultados")
+            }
+            
+         }
+             
+
+         if (!lista.length) {
+            fazerRequisicaoGet()
+         } else {
+            exibirTarefas(lista)
+         }
+        
+      }
+
+
+function pesquisarportitulo(){
+   const pesquisa = document.getElementById('pesquisa').value
+   const np = `${pesquisa}`
+ //  console.log(pesquisa)
+
+   if(np == ""){
+      fazerRequisicaoGet()
+   }else{
+      var n = deixarMinusculoSemAcentos(np)
+      exibirTarefaspesquisa(n)
+   }
+}
+
+
+function irpl(){
+   var bgllogin = document.getElementById('bgloginid');
+      bgllogin.style.display = "initial"
+   var cadastro = document.getElementById('cadastroid');
+      cadastro.style.display = "none"
+}
+
+
+function modalnova(){
+   var bgllogin = document.getElementById('addnova');
+      bgllogin.style.display = "initial"
+}
+
+
+
+
+function marcarnovohistorico(id){
+
+
+ tarefaIdd = id
+   console.log(tarefaIdd)
+   console.log("dsds")
+
+   var bg = document.getElementById('bgLid');
+      bg.style.display = "initial"
+}
+
+
+
+
+function cancelarsalvar2(){
+
+//console.log(tarefasEncontradas)
+
+   var bg = document.getElementById('addnova');
+      bg.style.display = "none"
+}
+
+
+
+
+
+
+
+
+
+   //------------------------------funcoes animacoes-----------------------------------
+function pontsalva() {
+
+       var bgLpont = document.getElementById('bgLidpont')
+        bgLpont.style.display = "initial"
+
+   // Remove o elemento após a animação
+   setTimeout(function() {
+  ;      bgLpont.style.display = "none"
+   }, 2000); // Ajuste o tempo conforme necessário
+}
+
+function carregando() {
+
+       var carregando = document.getElementById('carregandoid')
+        carregando.style.display = "initial"
+
+   // Remove o elemento após a animação
+   setTimeout(function() {
+        carregando.style.display = "none"
+   }, 2000); // Ajuste o tempo conforme necessário
+}
+
+
+
+function tarefaresetadas() {
+
+       var bgLreset = document.getElementById('bgLidreset')
+        bgLreset.style.display = "initial"
+
+   // Remove o elemento após a animação
+   setTimeout(function() {
+  ;      bgLreset.style.display = "none"
+   }, 2000); // Ajuste o tempo conforme necessário
+}
+
+
+
+
+
+   //------------------------------funcoes tarefas-----------------------------------
+
+
+      function fazerRequisicaoGet() {
+
+       
+         var xhr = new XMLHttpRequest();
+         xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/paths.json', true);
+         xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+
+               if(tarefasr){
+                  
+                  tarefasr = JSON.parse(xhr.responseText);
+               }else{
+                   
+                  tarefasr = JSON.parse(xhr.responseText);
+               }
+
+         
+         tarefasEncontradas = [];
+
+         // Itera sobre cada chave (ID) no objeto
+         for (var id in tarefasr) {
+            // Verifica se a descrição é igual ao parâmetro
+           
+               // Adiciona o ID ao objeto da tarefa
+               var tarefaEncontrada = tarefasr[id];
+               tarefaEncontrada.id = id;
+               tarefasEncontradas.push(tarefaEncontrada);
+            
+         }
+
+         // Exibe as tarefas encontradas
+        
+
+               datacomparativa = tarefasEncontradas[0]
+               exibirTarefas(tarefasEncontradas);
+               
+            }
+         };
+         xhr.send();
+      };
+
 
 
     
-          /*----------------------MODAL DEFAULT-----------------*/
 
 
-      .bgL{
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.613); /* Fundo escuro semi-transparente */
-            justify-content: center;
-            align-items: center;
-        }
-        .bgconteudo{
-            z-index: 3;
-            color: rgb(179, 15, 67);
-            padding: 30px;
-            font-size: 30px;
-            width: 340px;
-            height: 100%;
-            max-height: 120px;
-          
-            margin: 50px auto;
-            background-color: #e0b8b8;
+
+
+      function exibirTarefas(tarefas) {
+      
+         var infoTarefasConcluidas = document.getElementById('infoTarefasConcluidas');
+       // var concluidasCount = document.getElementById('concluidasCount');
+         //var totalTarefasElement = document.getElementById('totalTarefas');
+
+
+
+
+         var listaTarefas = document.getElementById('listaTarefas');
+         listaTarefas.innerHTML = ''; // Limpa a lista para evitar duplicatas
+
+         var tarefasConcluidas = 0;
+         var totalTarefas = 0;
+
+         for (var id in tarefas) {
+            var tarefa = tarefas[id];
+
             
-            text-align: center;
-            overflow-x: hidden;
-            border-radius: 30px;
-            -webkit-box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
--moz-box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
-box-shadow: 10px 17px 121px 0px rgba(255,255,255,1);
 
-        }
+              totalTarefas++;
+            var itemLista = document.createElement('li');
+          
+            var botaoDeletar = document.createElement('button');
 
+       
 
-
-
-
-
-    /*----------------------CONTAINERS GERAIS-----------------*/
-      .img-coracao{
-
-        width: 100%;
-        height: 100%;
-        margin: 100px auto;
-        min-height: 500px;
-        text-align: center;
-background-image:url('co.png');
-      background-size: contain; /* Define o tamanho da imagem para cobrir metade da div */
-      background-position: center;
-      background-repeat: no-repeat;
+            //  setTimeout(function() {
+               
+            // }, 2000);
 
 
+            if (!tarefa.concluida) {
+       
+     
+                botaoDeletar.classList.add('negativo');
+              
+            } else {
+               tarefasConcluidas++;
+                var botaoConcluir = document.createElement('p');
+                botaoConcluir.textContent = "Concluída!";
+                botaoConcluir.classList.add('conluidap');
+
+                botaoDeletar.classList.add('negativo');
+               // Adiciona a classe 'concluida' para tarefas concluídas
+               itemLista.classList.add('concluida');
+            }
+
+
+            // Adiciona o botão "Deletar" para todas as tarefas
+            botaoDeletar.textContent = 'Deletar';
+            botaoDeletar.addEventListener('click', (function(id) {
+               return function() {
+                  deletarTarefa(id); // Chama a função para deletar a tarefa ao clicar no botão
+               };
+            })(tarefa.id));
+
+
+
+            var descricao = document.createElement('div');
+
+            descricao.textContent = tarefa.descricao;
+
+
+             var descricaoDetalhada = document.createElement('div');
+         descricaoDetalhada.textContent = tarefa.descricaoDetalhada || ''; // Exibe a descrição detalhada se existir
+
+         var datacriacao = document.createElement('div');
+         datacriacao.textContent = tarefa.dataCriacao
+            ? `Data de criação: ${formatarData(tarefa.dataCriacao)}`
+            : ''; // Exibe a descrição detalhada se existir
+
+         var dataconluida = document.createElement('div');
+                  var solu = document.createElement('div');
+
+         dataconluida.textContent = tarefa.dataConclusao
+   
+
+            ? `Data de Conclusão: ${formatarData(tarefa.dataConclusao)}`
+            : ''; // Exibe a descrição detalhada se existir 
+
+
+
+            solu.textContent = tarefa.solu
+            ? `Solução: ${tarefa.solu}`
+            : ''; // Exibe a descrição detalhada se existir 
+
+
+
+            descricaoDetalhada.classList.add('descricao-detalhada');
+            datacriacao.classList.add('descricao-datacriacao');
+            dataconluida.classList.add('descricao-dataconcluida');
+            solu.classList.add('descricao-solu');
+             
+            descricao.classList.add('descricao');
+
+            itemLista.appendChild(descricao);
+            itemLista.appendChild(descricaoDetalhada);
+            itemLista.appendChild(datacriacao);
+            itemLista.appendChild(dataconluida);
+            itemLista.appendChild(solu);
+      
+            itemLista.appendChild(botaoDeletar);
+            listaTarefas.appendChild(itemLista);
+
+
+              // concluidasCount.textContent = tarefasConcluidas;
+       //  totalTarefasElement.textContent = totalTarefas;
+
+         //   total = totalTarefas
+           // concluidas = tarefasConcluidas
+         }
       }
 
-      .titulo{
-        color: white;
-        font-size: 18px;
-      } 
-      .titulo2{
-        font-size: 15px;
-        position: relative;
-        top: 150px;
-        color: white;
-        font-size: 22px;
+
+      function testezinho(id){
+         console.log(id)
       }
 
 
-      </style>
-      </head>
-
-      <body>
 
 
-        <div class="img-coracao">
+      function formatarData(dataString) {
 
-        <h1 class="titulo" id="tempo-restante"></h1>
-
-            <h1 class="titulo2" style="display: none;" id="iddotit" onclick="abrirmodal()">Clique aqui</h1>
-        </div>
-
-
-        <div class="bgL" id="modal" style="display: none;">
-            <div class="bgconteudo">
-                <p>te amo meu bolinho!!!</p>
-            </div>
-        </div>
-
-
-        <script>
-
-
-
-            var select3 = document.getElementById("iddotit");
         
-            setTimeout(() => {
+
+         const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+         return new Date(dataString).toLocaleDateString('pt-BR', options);
+      }
+
+
+      function fazerRequisicaoPost() {
+
+         var xhr = new XMLHttpRequest();
+         xhr.open('POST', 'https://appatividades-7450d-default-rtdb.firebaseio.com/paths.json', true);
+         xhr.setRequestHeader('Content-Type', 'application/json');
+         xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+               
+                  setTimeout(function() {
+                     fazerRequisicaoGet();
+                   }, 1000); 
                 
-                select3.style.display = "initial"
+            }
+         };
 
-            }, "1000");
+         var novaTarefa = {
+            descricao: document.getElementById('descricaoTarefa').value,
+            descricaoDetalhada: document.getElementById('descricaoDetalhada').value,
+            concluida: false,
+            dataCriacao: new Date().toISOString(), // Adiciona a data de criação no formato ISO8601
+            dataConclusao: null, // Inicializa a data de conclusão como null
+           
+
+         };
+
+         xhr.send(JSON.stringify(novaTarefa));
+
+         reoald()
+      };
 
 
-        function abrirmodal(){
-            console.log("sd")
-            var select = document.getElementById("modal");
-            select.style.display = "initial"
-            setTimeout(() => {
-                
-            select.style.display = "none"
-            }, "5000");
-        }
 
-        function atualizarContador() {
-    var dataAtual = new Date();
-    var dataTermino = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate(), 19, 30, 0); // Defina a hora de término para 19:30
 
-    var diferenca = dataTermino - dataAtual;
 
-        var segundosRestantes = Math.floor(diferenca / 1000);
-        var minutos = Math.floor(segundosRestantes / 60);
-        var segundos = segundosRestantes % 60;
-        document.getElementById("tempo-restante").innerHTML = "Quanto falta para eu ver a minha juju: " + minutos + "m " + segundos + "s";
-  
+
+function pegaridtarefa(tarefaId) {
+   tarefaIdd = tarefaId
+   console.log(tarefaId)
+   console.log("dsds")
 }
 
-var contadorInterval = setInterval(atualizarContador, 1000);
 
 
-        </script>
+function marcarComoConcluida() {
+   const hisotriconovo = document.getElementById('re').value
+  console.log(tarefaIdd)
+   console.log(hisotriconovo)
+
+   var xhr = new XMLHttpRequest();
+   var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/paths/${tarefaIdd}.json`;
+
+   xhr.open('PATCH', url, true);
+   xhr.setRequestHeader('Content-Type', 'application/json');
+   xhr.onreadystatechange = function () {
+      if (xhr.readyState == 4) {
+         if (xhr.status == 200) {
+            console.log('Tarefa marcada como concluída com sucesso!');
+
+            setTimeout(function() {
+               fazerRequisicaoGet();
+            }, 1000);
+         } else {
+            console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+         }
+      }
+   };
+//
+   var dataConclusao = new Date().toISOString();
+   xhr.send(JSON.stringify({ concluida: true, dataConclusao: dataConclusao, solu: hisotriconovo }));
 
 
-      </body>
-      </html>
+
+   var bgllogin = document.getElementById('bgLid');
+      bgllogin.style.display = "none"
+
+      reoald()
+     
+}
+
+
+function reoald(){
+   setTimeout(() => {
+   location.reload();
+}, "1000");
+}
+
+
+
+
+      function deletarTarefa(tarefaId) {
+
+         
+
+         var xhr = new XMLHttpRequest();
+         var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/paths/${tarefaId}.json`;
+
+         xhr.open('DELETE', url, true);
+         xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+               if (xhr.status == 200) {
+                  
+
+                    setTimeout(function() {
+                     fazerRequisicaoGet();
+                   }, 1000); 
+                 // Após deletar, atualiza a lista de tarefas
+
+               } else {
+                  console.error('Erro ao deletar tarefa:', xhr.status, xhr.statusText);
+               }
+            }
+         };
+
+         xhr.send();
+      }
+
+      function resetarTarefas() {
+
+         //aqui falta mnudar para ele resetar so as do usuario
+
+         var xhr = new XMLHttpRequest();
+         var url = 'https://appatividades-7450d-default-rtdb.firebaseio.com/paths.json';
+         xhr.open('GET', url, true);
+         xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+
+               // Itera sobre todas as tarefas e redefine concluída como false
+               for (var id in tarefasr) {
+                  nid = tarefasr[id].id
+                  
+                  atualizarStatusConcluida(nid, false);
+               }
+
+               setTimeout(function() {
+                  tarefaresetadas()
+                  fazerRequisicaoGet();
+               }, 1000);
+                             
+
+               
+                // Atualiza a lista de tarefas
+              
+
+            }
+         };
+         xhr.send();
+      }
+
+
+
+   
+
+
+
+      function atualizarStatusConcluida(tarefaId, novoStatus) {
+          var dataCriacao = new Date().toISOString();
+         var xhr = new XMLHttpRequest();
+         var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/paths/${tarefaId}.json`;
+         xhr.open('PATCH', url, true);
+         xhr.setRequestHeader('Content-Type', 'application/json');
+         xhr.send(JSON.stringify({
+
+               concluida: novoStatus,
+               dataConclusao: null,
+               dataCriacao: dataCriacao,
+
+
+            }));
+
+      };
+
+
+   </script>
+</body>
+</html>
