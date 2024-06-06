@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--<html lang="en">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -484,7 +484,7 @@ background:#176c72;
 
 
    <button class="positivo" onclick="modalnova()">Adicionar novo arquivo</button>
-   <!--<button class="negativo" onclick="resetarTarefas()">Resetar Tarefas</button>-->
+   <button class="negativo" onclick="resetarTarefas()">Resetar Tarefas</button>
   
 
     
@@ -493,7 +493,7 @@ background:#176c72;
    <ul id="listaTarefas"></ul>
 
 
-</div><!---container-->
+</div>
 
 
 
@@ -508,7 +508,7 @@ background:#176c72;
 
          <div class="bgcontentt">
               
-            <!--   <input type="textarea"  placeholder="Resposta da dúvida" style="height: 100px;" rows="10" cols="50"> -->
+           <input type="textarea"  placeholder="Resposta da dúvida" style="height: 100px;" rows="10" cols="50"> 
          <input type="text" id="descricaoTarefa" placeholder="Título do arquivo">
 
          <p>Descrição detalhada:</p>
@@ -1079,4 +1079,684 @@ function reoald(){
 
    </script>
 </body>
+</html>-->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela com Ações</title>
+    <style>
+        /* styles.css */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-height: 500px;
+           
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .containertable{
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .containerfiltros{
+            max-height: 300px;
+            display: flex;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #5a2323;
+            width: 100%;
+        }
+        .filtrossinlge{
+            margin: 0 auto;
+            width: 30%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            margin-right: 5px;
+          
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btnvalidar{
+            background-color: #4CAF50;
+        }
+        .btnerro{
+            background-color: #d51212;
+            
+        }
+        .btnresol{
+            background-color: #a89716de;
+            
+        }
+        .btnvalidar:hover {
+            background-color: #53c25c;
+        
+        }
+        .btnerro:hover{
+            background-color: #d51212;
+            
+        }
+
+        input {
+         padding: 10px;
+         margin-bottom: 10px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+         font-size: 14px;
+         box-sizing: border-box;
+         width: 100%;
+      }
+
+        .Total { 
+            width: 30%;
+           
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        
+      .tarefasconcluidas p {
+         color: white;
+          font-family: 'Arial', sans-serif;
+      }
+        .tarefasconcluidas span {
+         color: white;
+          font-family: 'Arial', sans-serif;
+      }
+.titulop{
+    text-align: center;
+    margin: 0 auto;
+    margin-bottom: 40px;
+}
+.metricasrelat{
+    display: flex;
+    width: 100%; 
+    padding: 10px;
+ 
+}
+td.actions {
+    text-align: left;
+    background-color: #ffffff; /* Branco */
+}
+.fechar{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: #ff4545;
+         margin: 10px auto;
+
+      
+         cursor: pointer;
+
+         padding: 5px;
+         height: 23px;
+  }
+
+     .fechar2{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+     
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: rgb(66, 190, 66);
+         margin: 0 auto;
+           margin-top: 70px;
+         cursor: pointer;
+
+         padding: 5px;
+         height: 23px;
+        
+  }
+
+  .fechar p {
+   position: relative;
+   top: -12px;
+  }
+  .fechar2 p {
+   position: relative;
+   top: -12px;
+  }
+
+
+.bgL{
+      display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+         justify-content: center;
+         align-items: center;
+}
+.bgconteudo{
+         width: 350px;
+         height: 100%;
+         max-height: 380px;
+         
+         margin: 50px auto;
+         background-color: #fff;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+       
+}
+    </style>
+</head>
+<body>
+
+    <div id="RlResolve" class="bgL">
+  
+        <div class="bgconteudo">
+     
+              <div class="bgcontentt">
+
+            <!--   <input type="textarea"  placeholder="Resposta da dúvida" style="height: 100px;" rows="10" cols="50"> -->
+            <p id="descerro" class="Total">Descrição do erro </p>
+     
+            <p>Descrição detalhada da resolução:</p>
+            <textarea id="dsrs" style="resize: none; border-radius: 5px;" rows="6" cols="42">                  
+            </textarea>
+                              <!--   <input type="textarea"  placeholder="Resposta da dúvida" style="height: 100px;" rows="10" cols="50"> -->
+    
+              
+              <div class="fechar2" onclick="Resolver()">
+                  <p>Salvar</p>
+     
+               </div>
+     
+               <div class="fechar" onclick="fechar2()">
+                  <p>cancelar</p>
+     
+               </div>
+     
+     
+              </div>   
+            
+     
+            
+        </div>
+     </div>
+     
+
+
+    <div id="RlErro" class="bgL">
+  
+        <div class="bgconteudo">
+     
+              <div class="bgcontentt">
+                       
+              <p>Descrição detalhada do erro:</p>
+              <textarea id="dse" style="resize: none; border-radius: 5px;" rows="6" cols="42">                  
+              </textarea>
+    
+                      
+                           
+              <div class="fechar2" onclick="erro()">
+                  <p>Salvar</p>
+     
+               </div>
+     
+               <div class="fechar" onclick="fechar1()">
+                  <p>cancelar</p>
+     
+               </div>
+     
+     
+              </div>   
+            
+     
+            
+        </div>
+     </div>
+     
+
+
+
+
+
+
+    <h1 class="titulop"> Gestão de relatórios para migração HTML5</h1>
+    <div class="container">
+
+        <div class="metricasrelat">
+            <p id="Total" class="Total">Total de relatórios: 0</p>
+            <p id="Totalval" class="Total">Total de relatórios validados: 0</p>
+            <p id="Totalesp" class="Total">Total de relatórios pendentes: 0</p>
+        </div>
+       
+
+        <input type="text" id="pesquisa" placeholder="Pesquisar por titulo do relatório, código ou classificação">
+     
+
+      
+<div class="containertable">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Cód class relatorio</th>
+                    <th>Cód relatório</th>
+                    <th>Título</th>
+                    <th style="width: 200px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linhas serão adicionadas dinamicamente aqui -->
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+    <script>
+
+var dataglobal = null
+
+
+
+setInterval(() => {
+   pesquisarportitulo()
+}, "1000");
+ 
+
+
+function removerAcentos(texto) {
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function deixarMinusculoSemAcentos(texto) {
+    return removerAcentos(texto).toLowerCase();
+}
+
+
+
+function exibirTarefaspesquisa(pesquisa){
+         const lista = []
+     
+         //console.log(tarefasEncontradas)
+
+         for (var id in dataglobal) {
+
+            var relatorio = dataglobal[id];
+
+    
+            var ndescr = relatorio.DS_TITULO;
+            var cdrelat = String(relatorio.CD_RELATORIO);
+            var classrelat = relatorio.CD_CLASSIF_RELAT;
+
+            var descr = deixarMinusculoSemAcentos(ndescr)
+
+            
+            console.log(cdrelat)
+
+           // console.log(descr, pesquisa)
+            console.log(pesquisa)
+            if(descr.includes(pesquisa) || cdrelat.includes(pesquisa) || classrelat.includes(pesquisa)){
+              
+               lista.push(dataglobal[id])
+            }else{
+               //console.log("sem reultados")
+            }
+            
+         }
+             
+
+         if (!lista.length) {
+            fazerRequisicaoGet()
+         } else {
+            populateTable(lista)
+         }
+        
+      }
+
+
+function pesquisarportitulo(){
+   const pesquisa = document.getElementById('pesquisa').value
+   const np = `${pesquisa}`
+ 
+
+   if(np == ""){
+      fazerRequisicaoGet()
+   }else{
+      var n = deixarMinusculoSemAcentos(np)
+      exibirTarefaspesquisa(n)
+   }
+}
+
+
+
+
+
+
+     var clicada = null
+    // script.js
+    fazerRequisicaoGet()
+  
+    var total = 0
+
+
+    
+    function fazerRequisicaoGet() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios.json', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                const relatorios = JSON.parse(xhr.responseText);
+               
+                populateTable(relatorios);
+            }
+        };
+        xhr.send();
+    }
+
+    function populateTable(data) {
+        let totalValidados = 0;
+        let total = 0
+    let totalComErro = 0;
+        const tbody = document.querySelector('#dataTable tbody');
+        tbody.innerHTML = '';
+
+        dataglobal = data
+    
+       
+        for (var id in data) {
+            total = total + 1
+            document.getElementById('Total').innerText = ` Total de relatórios: ${total}`
+            var relatorio = data[id];
+            //console.log(relatorio)
+            const tr = document.createElement('tr');
+
+            const tdCodClassRelatorio = document.createElement('td');
+            tdCodClassRelatorio.textContent = relatorio.CD_CLASSIF_RELAT  || 'N/A';
+            tr.appendChild(tdCodClassRelatorio);
+
+            const tdCodRelatorio = document.createElement('td');
+            tdCodRelatorio.textContent = relatorio.CD_RELATORIO  || 'N/A';
+            tr.appendChild(tdCodRelatorio);
+
+            const tdTitulo = document.createElement('td');
+            tdTitulo.textContent = relatorio.DS_TITULO  || 'N/A';
+            tr.appendChild(tdTitulo);
+
+
+             
+
+            const actionTd = document.createElement('td');
+          
+       
+
+            if (relatorio.Validado === true) {
+                tr.style.backgroundColor = '#85ff9f'; // Verde
+                totalValidados++;
+              
+                const pValidado = document.createElement('p');
+                pValidado.textContent = 'Validado';
+                pValidado.style = 'color: green; text-align: center'
+                actionTd.appendChild(pValidado);
+                actionTd.classList.add('actions');
+
+            //adicionando botao paravizualizar
+              
+            }
+            else if (relatorio.Erro === true) {
+                tr.style.backgroundColor = '#ed828a' ; // Vermelho
+                totalComErro++;
+                const btnerro = createButton('Resolver', id);
+                btnerro.classList.add('btnresol'); //btnvalidar
+                actionTd.appendChild(btnerro);
+                actionTd.classList.add('actions');
+
+            }else{
+           
+            const btn1 = createButton('Validar', id);
+            const btn2 = createButton('Relatar erro', id);
+
+            btn1.classList.add('btnvalidar');
+            btn2.classList.add('btnerro');
+
+            actionTd.appendChild(btn1);
+            actionTd.appendChild(btn2);
+            }
+
+
+       
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+
+            document.getElementById('Totalval').textContent = `Total de relatórios validados: ${totalValidados}`;
+    document.getElementById('Totalesp').textContent = `Total de relatórios com erro: ${totalComErro}`;
+    document.getElementById('Total').textContent = `Total de relatórios: ${total}`;
+        }
+    }
+
+    function createButton(text, id) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.addEventListener('click', () => handleAction(id, text));
+        return button;
+    }
+
+    function handleAction(id, action) {
+        console.log(id, action)
+        if(action == 'Validar'){
+            update(id)
+        } else if(action == 'Relatar erro'){
+            erromodal(id)
+        }    else if(action == 'Resolver'){
+            Resolvermodal(id)
+        }
+    }
+
+    function Resolvermodal(id){
+        abrirmodalresolver(id)
+    
+    }
+    function erromodal(id){
+        abrirmodalrelatarr(id)
+    }
+
+    var clicadafalsa = null
+
+function abrirmodalresolver(id){
+    console.log('dsds')
+    console.log(id)
+    clicadafalsa = getbyid(id)
+ 
+    clicada = id
+
+   const erro = document.getElementById('RlResolve') 
+   erro.style.display = 'initial'
+
+   setTimeout(() => {
+    console.log(clicadafalsa)
+    const descerro = document.getElementById('descerro')
+        descerro.textContent = `${clicadafalsa.DsErro}`
+   }, "2000");
+
+}
+
+
+function abrirmodalrelatarr(id){
+  
+    clicada = id
+    const ResolverErro = document.getElementById('RlErro') 
+    ResolverErro.style.display = 'initial'
+}
+
+
+
+
+
+
+
+
+function getbyid(tarefaIdd) {
+    console.log(tarefaIdd)
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaIdd}.json`;
+ 
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                clicadafalsa = JSON.parse(xhr.responseText);
+                
+            }
+        };
+        xhr.send();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    function Resolver() {
+        const tarefaId = clicada
+        console.log(tarefaId)
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como concluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
+
+        var dataConclusao = new Date().toISOString();
+
+        xhr.send(JSON.stringify({ Erro: false, Validado: true, Resolucao:`${document.getElementById('dsrs').value}`}));
+
+        const erro = document.getElementById('RlResolve') 
+   erro.style.display = 'none'
+    }
+
+
+    function erro() {
+        const tarefaId = clicada
+        console.log(tarefaId)
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como concluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+            const erro = document.getElementById('RlErro') 
+   erro.style.display = 'none'
+        };
+
+        var dataConclusao = new Date().toISOString();
+        xhr.send(JSON.stringify({ Erro: true, DsErro: `${document.getElementById('dse').value}`}));
+    }
+
+    function update(tarefaId) {
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como concluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
+
+        var dataConclusao = new Date().toISOString();
+        xhr.send(JSON.stringify({ Validado: true}));
+    }
+
+    function fechar1(){
+       const erro = document.getElementById('RlErro') 
+       erro.style.display = 'none'
+    }
+
+    function fechar2(){
+       const erro = document.getElementById('RlResolve') 
+       erro.style.display = 'none'
+    }
+
+
+
+</script>
+
+</body>
 </html>
+
