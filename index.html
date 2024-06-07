@@ -1286,6 +1286,68 @@ td.actions {
          box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
        
 }
+
+
+.custom-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px; /* Tamanho da fonte menor */
+    user-select: none;
+}
+
+.custom-checkbox input {
+    position: relative;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    padding-top: 30px;
+    margin-bottom: 20px;
+}
+
+.custom-checkbox span {
+    position: relative;
+    padding-left: 10px;
+    padding-top: 3px; /* Espaçamento entre o checkbox e o texto */
+}
+
+.custom-checkbox span::before {
+    content: "";
+    position: absolute;
+    left: -30px; /* Ajuste do espaçamento à esquerda do span */
+    top: -2px; /* Ajuste vertical para alinhar melhor com o texto */
+    width: 20px; /* Tamanho menor do checkbox */
+    height: 20px; /* Tamanho menor do checkbox */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.custom-checkbox input:checked ~ span::before {
+    background-color: #2196F3;
+}
+
+.custom-checkbox span::after {
+    content: "";
+    position: absolute;
+    left: -23px; /* Ajuste do espaçamento à esquerda do span */
+    top: 3px; /* Ajuste vertical para alinhar melhor com o texto */
+    width: 7px; /* Tamanho menor da marca de seleção */
+    height: 12px; /* Tamanho menor da marca de seleção */
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: none;
+}
+
+.custom-checkbox input:checked ~ span::after {
+    display: block;
+}
+.bgcheck{
+    margin-left: 25px;
+    margin-bottom: 20px;
+}
     </style>
 </head>
 <body>
@@ -1372,9 +1434,18 @@ td.actions {
        
 
         <input type="text" id="pesquisa" placeholder="Pesquisar por titulo do relatório, código ou classificação">
-     
+        
+        <div class="bgcheck">
+        <label class="custom-checkbox">
+            <input type="checkbox" id="checkbox1" name="Todos os relatórios">
+            <span>Todos os relatórios</span>
+        </label><br>
+        <label class="custom-checkbox">
+            <input type="checkbox" id="checkbox2" name="Relatórios importantes">
+            <span>Relatórios importantes</span>
+        </label>
+    </div>
 
-      
 <div class="containertable">
         <table id="dataTable">
             <thead>
@@ -1397,6 +1468,37 @@ td.actions {
 var dataglobal = null
 
 
+const checkbox1 = document.getElementById('checkbox1');
+    const checkbox2 = document.getElementById('checkbox2');
+    checkbox1.addEventListener('change', function() {
+    if (this.checked) {
+        checkbox2.checked = false;
+        fazerRequisicaoGet(); // Adicione isso para atualizar os dados
+    }
+});
+    
+    checkbox2.addEventListener('change', function() {
+        if (this.checked) {
+            const lista = []
+            checkbox1.checked = false;
+            
+         for (var id in dataglobal) {
+
+            var relatorio = dataglobal[id];
+
+
+            var ndescr = relatorio.importancia
+           
+            if (ndescr) {
+                lista.push(dataglobal[id])
+            }
+         
+        
+            }
+            populateTable(lista)
+        
+        }
+    });
 
 setInterval(() => {
    pesquisarportitulo()
@@ -1404,45 +1506,77 @@ setInterval(() => {
  
 
 
-function removerAcentos(texto) {
-    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function deixarMinusculoSemAcentos(texto) {
-    return removerAcentos(texto).toLowerCase();
-}
 
 
+function pesquisarportitulo(){
+   var pesquisa = document.getElementById('pesquisa').value
+   var np = `${pesquisa}`
+    
 
-function exibirTarefaspesquisa(pesquisa){
-         const lista = []
-     
-         //console.log(tarefasEncontradas)
+   
 
+   if(np == ""){
+    if (checkbox2.checked) {
+            const lista = []
+            checkbox1.checked = false;
+            
          for (var id in dataglobal) {
 
             var relatorio = dataglobal[id];
 
+
+            var ndescr = relatorio.importancia
+           
+            if (ndescr) {
+                lista.push(dataglobal[id])
+            }
+         
+        
+            }
+            populateTable(lista)
+        
+        }else{
+              fazerRequisicaoGet()
+        }
+    
+   }else{
+    
+    var o = dd(np)
+
+    //  var n = deixarMinusculoSemAcentos(np)
+d(o)
+    //      exibirTarefaspesquisa(o)
+   
+      
+   }
+}
+
+function d(o){
+    console.log(o)
+    
+         const lista = []
+     
+        // console.log(dataglobal)
+    
+          for (var id in dataglobal) {
+
+             var relatorio = dataglobal[id];
+               // console.log(relatorio)
     
             var ndescr = relatorio.DS_TITULO;
-            var cdrelat = String(relatorio.CD_RELATORIO);
-            var classrelat = relatorio.CD_CLASSIF_RELAT;
+             var cdrelat = String(relatorio.CD_RELATORIO);
+             var classrelat = relatorio.CD_CLASSIF_RELAT;
 
-            var descr = deixarMinusculoSemAcentos(ndescr)
+             //var descr = dd(ndescr)
 
-            
-            console.log(cdrelat)
-
-           // console.log(descr, pesquisa)
-            console.log(pesquisa)
-            if(descr.includes(pesquisa) || cdrelat.includes(pesquisa) || classrelat.includes(pesquisa)){
+            if(ndescr.includes(o) || cdrelat.includes(o) || classrelat.includes(o)){
               
                lista.push(dataglobal[id])
-            }else{
-               //console.log("sem reultados")
-            }
+             }else{
+                //console.log("sem reultados")
+             }
             
-         }
+          }
              
 
          if (!lista.length) {
@@ -1450,22 +1584,34 @@ function exibirTarefaspesquisa(pesquisa){
          } else {
             populateTable(lista)
          }
+}
+
+
+
+function exibirTarefaspesquisa(o){
+  
         
       }
 
 
-function pesquisarportitulo(){
-   const pesquisa = document.getElementById('pesquisa').value
-   const np = `${pesquisa}`
- 
 
-   if(np == ""){
-      fazerRequisicaoGet()
-   }else{
-      var n = deixarMinusculoSemAcentos(np)
-      exibirTarefaspesquisa(n)
-   }
+
+
+
+
+function removerAcentos(texto) {
+
+        var tev = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return tev
+ 
 }
+
+function dd(texto) {
+
+    return removerAcentos(texto).toLowerCase();
+
+}
+
 
 
 
@@ -1527,7 +1673,11 @@ function pesquisarportitulo(){
 
             const actionTd = document.createElement('td');
           
-       
+            
+            if (relatorio.importancia === true) {
+                tr.style.backgroundColor = '#ffef85' ; // Vermelho              
+            }
+
 
             if (relatorio.Validado === true) {
                 tr.style.backgroundColor = '#85ff9f'; // Verde
@@ -1759,4 +1909,3 @@ function getbyid(tarefaIdd) {
 
 </body>
 </html>
-
