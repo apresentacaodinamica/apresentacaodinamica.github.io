@@ -1425,9 +1425,10 @@ td.actions {
     <h1 class="titulop"> Gestão de relatórios para migração HTML5</h1>
     <div class="container">
 
-        <div class="metricasrelat">
+        <div class="metricasrelat" style="font-size: 10px;">
             <p id="Total" class="Total">Total de relatórios: 0</p>
             <p id="Totalval" class="Total">Total de relatórios validados: 0</p>
+            <p id="Totalvalsf" class="Total">Total de relatórios validados na função: 0</p>
             <p id="Totalesp" class="Total">Total de relatórios pendentes: 0</p>
         </div>
        
@@ -1640,7 +1641,9 @@ function dd(texto) {
 
     function populateTable(data) {
         let totalValidados = 0;
-        let total = 0
+        let Totalvalsf = 0;
+        let total = 0;
+
     let totalComErro = 0;
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = '';
@@ -1681,6 +1684,7 @@ function dd(texto) {
                
               tr.style.backgroundColor = '#85ff9f'; // Verde
                 totalValidados++;
+            
               
                 const pValidado = document.createElement('p');
                 pValidado.textContent = 'Validado';
@@ -1690,6 +1694,8 @@ function dd(texto) {
 
            }
          else  if (relatorio.Validado === true) {
+
+            Totalvalsf++;
             
             //  tr.style.backgroundColor = '#ed828a' ; // Vermelho
 
@@ -1729,9 +1735,12 @@ function dd(texto) {
             tr.appendChild(actionTd);
             tbody.appendChild(tr);
 
-            document.getElementById('Totalval').textContent = `Total de relatórios validados: ${totalValidados}`;
+            document.getElementById('Totalval').textContent = `Total de relatórios validados na função: ${totalValidados}`;
     document.getElementById('Totalesp').textContent = `Total de relatórios com erro: ${totalComErro}`;
     document.getElementById('Total').textContent = `Total de relatórios: ${total}`;
+
+    document.getElementById('Totalval').textContent = `Total de relatórios validados: ${Totalvalsf}`;
+    
         }
     }
 
@@ -1946,3 +1955,4 @@ function getbyid(tarefaIdd) {
 
 </body>
 </html>
+
