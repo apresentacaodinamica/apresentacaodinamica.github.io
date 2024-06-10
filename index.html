@@ -1080,7 +1080,6 @@ function reoald(){
    </script>
 </body>
 </html>-->
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1669,18 +1668,18 @@ function dd(texto) {
             tr.appendChild(tdTitulo);
 
 
-             
+            //console.log(relatorio.validadonafuncao)
 
             const actionTd = document.createElement('td');
           
             
             if (relatorio.importancia === true) {
-                tr.style.backgroundColor = '#ffef85' ; // Vermelho              
+                tr.style.backgroundColor = '#ffef85' ;            
             }
-
-
-            if (relatorio.Validado === true) {
-                tr.style.backgroundColor = '#85ff9f'; // Verde
+       
+            if(relatorio.validadonafuncao === true){
+               
+              tr.style.backgroundColor = '#85ff9f'; // Verde
                 totalValidados++;
               
                 const pValidado = document.createElement('p');
@@ -1689,9 +1688,22 @@ function dd(texto) {
                 actionTd.appendChild(pValidado);
                 actionTd.classList.add('actions');
 
-            //adicionando botao paravizualizar
-              
-            }
+           }
+         else  if (relatorio.Validado === true) {
+            
+            //  tr.style.backgroundColor = '#ed828a' ; // Vermelho
+
+            const btn1 = createButton('Validar na função', id);
+           //   const btn2 = createButton('Relatar erro função', id);
+//
+              btn1.classList.add('btnvalidar');
+             // btn2.classList.add('btnerro');
+
+              actionTd.appendChild(btn1);
+            //  actionTd.appendChild(btn2);
+          //adicionando botao paravizualizar
+            
+          }   
             else if (relatorio.Erro === true) {
                 tr.style.backgroundColor = '#ed828a' ; // Vermelho
                 totalComErro++;
@@ -1738,6 +1750,10 @@ function dd(texto) {
             erromodal(id)
         }    else if(action == 'Resolver'){
             Resolvermodal(id)
+        }else if (action == 'Validar na função'){
+            
+            validarfuncao(id)
+
         }
     }
 
@@ -1802,12 +1818,33 @@ function getbyid(tarefaIdd) {
 
 
 
+    function validarfuncao(clicada) {
+        const tarefaId = clicada
+       
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como coddsffsdncluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
 
 
+        xhr.send(JSON.stringify({ validadonafuncao: true,}));
 
-
-
-
+        
+    }
 
 
     function Resolver() {
@@ -1833,7 +1870,7 @@ function getbyid(tarefaIdd) {
         };
 
         var dataConclusao = new Date().toISOString();
-
+//validadonafuncao: true,   
         xhr.send(JSON.stringify({ Erro: false, Validado: true, Resolucao:`${document.getElementById('dsrs').value}`}));
 
         const erro = document.getElementById('RlResolve') 
