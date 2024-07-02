@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabela com Ações</title>
+    <title>Relatórios migração</title>
     <style>
         /* styles.css */
         body {
@@ -76,6 +76,12 @@
             background-color: #d51212;
             
         }
+        .btnvalidarcliente{
+            background-color: #4CAF50;
+        }
+        .btnvalidaalertas{
+            background-color: #2934899f;
+        }
         .btnresol{
             background-color: #a89716de;
             
@@ -104,7 +110,7 @@
            
             font-size: 13px;
             font-weight: bold;
-            margin-top: 20px;
+            margin-top: 2px;
         }
 
         
@@ -122,9 +128,9 @@
     margin-bottom: 40px;
 }
 .metricasrelat{
-    display: flex;
+   
     width: 100%; 
-    padding: 10px;
+    padding: 1px;
  
 }
 .metricasrelat p{
@@ -348,10 +354,24 @@ td.actions {
     <div class="container">
 
         <div class="metricasrelat" style="font-size: 10px;">
-            <p id="Total" class="Total">Total de relatórios: 0</p>
-            <p id="Totalval" class="Total">Total de relatórios validados: 0</p>
-            <p id="Totalvalsf" class="Total">Total de relatórios validados na função: 0</p>
-            <p id="Totalesp" class="Total">Total de relatórios com erro: 0</p>
+
+            <p id="Total" class="Total"></p>
+       
+
+            <p id="Totalesp" class="Total"></p>
+
+            <p id="Totalvalsf" class="Total"></p>
+
+            <p id="Totalval" class="Total"></p>
+           
+          
+           
+            <p id="Totalvalc" class="Total"></p>
+       
+            <p id="totalalertas" class="Total"></p>
+       
+            
+            
         </div>
 
         <div class="metricasrelat" style="font-size: 10px;">
@@ -379,8 +399,10 @@ td.actions {
                 <tr>
                     <th>Cód class relatorio</th>
                     <th>Cód relatório</th>
-                    <th>Título</th>
+                    <th>Título</th> 
+                   
                     <th style="width: 200px;">Ações</th>
+                    <th>Alertas</th>
                 </tr>
             </thead>
             <tbody>
@@ -555,7 +577,7 @@ function dd(texto) {
     
     function fazerRequisicaoGet() {
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios.json', true);
+        xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2.json', true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 const relatorios = JSON.parse(xhr.responseText);
@@ -567,10 +589,14 @@ function dd(texto) {
     }
 
     function populateTable(data) {
+
+        //console.log(data)
         let totalValidados = 0;
         let Totalvalsf = 0;
         let Totalespe = 0;
+        let Totalvalsc = 0;
         let total = 0;
+        let totalalertas = 0
 
     let totalComErro = 0;
         const tbody = document.querySelector('#dataTable tbody');
@@ -583,7 +609,7 @@ function dd(texto) {
             total = total + 1
             document.getElementById('Total').innerText = ` Total de relatórios: ${total}`
             var relatorio = data[id];
-            //console.log(relatorio)
+            console.log(relatorio)
             const tr = document.createElement('tr');
 
             const tdCodClassRelatorio = document.createElement('td');
@@ -601,17 +627,46 @@ function dd(texto) {
 
             //console.log(relatorio.validadonafuncao)
 
+            const nactionTd = document.createElement('td');
+            nactionTd.style.textAlign = 'Center'
+            nactionTd.style.backgroundColor = 'white'
+
+
+if (relatorio.alertasresolvidos === true) {
+
+    const pValidado = document.createElement('p');
+    pValidado.textContent = 'Alertas Validados';
+    pValidado.style = 'color: blue; text-align: center'
+    nactionTd.appendChild(pValidado);
+    nactionTd.classList.add('actions');
+    totalalertas++;
+
+}else{
+   
+const btn1 = createButton('Validar Alertas', id);
+btn1.classList.add('btnvalidaalertas');
+nactionTd.appendChild(btn1);
+
+}
+
+
+
+
+
+
             const actionTd = document.createElement('td');
           
-            
+            tr.appendChild(actionTd);
+
             if (relatorio.importancia === true) {
                 tr.style.backgroundColor = '#ffef85' ;            
             }
        
-            if(relatorio.validadonafuncao === true){
+            if(relatorio.validadopelocliente === true){
                
               tr.style.backgroundColor = '#85ff9f'; // Verde
-                totalValidados++;
+              
+                Totalvalsc++;
             
               
                 const pValidado = document.createElement('p');
@@ -621,10 +676,23 @@ function dd(texto) {
                 actionTd.classList.add('actions');
 
            }
+           else if(relatorio.validadonafuncao === true){
+               //  tr.style.backgroundColor = '#ed828a' ; // Vermelho
+               Totalvalsf++;
+               const btn1 = createButton('Validação do cliente', id);
+           //   const btn2 = createButton('Relatar erro função', id);
+//
+              btn1.classList.add('btnvalidarcliente');
+             // btn2.classList.add('btnerro');
+
+              actionTd.appendChild(btn1);
+            //  actionTd.appendChild(btn2);
+          //adicionando botao paravizualizar
+
+           }
          else  if (relatorio.Validado === true) {
 
-            Totalvalsf++;
-            
+            totalValidados++;
             //  tr.style.backgroundColor = '#ed828a' ; // Vermelho
 
             const btn1 = createButton('Validar na função', id);
@@ -644,7 +712,7 @@ function dd(texto) {
                 const btnerro = createButton('Resolver', id);
                 btnerro.classList.add('btnresol'); //btnvalidar
                 actionTd.appendChild(btnerro);
-                actionTd.classList.add('actions');
+           
 
             }else{
                 Totalespe++;
@@ -659,11 +727,15 @@ function dd(texto) {
             }
 
 
-       
-            tr.appendChild(actionTd);
-            tbody.appendChild(tr);
 
-            document.getElementById('Totalval').textContent = `Total de relatórios validados na função: ${totalValidados}`;
+         
+
+            tr.appendChild(nactionTd);
+            tbody.appendChild(tr);
+          
+
+
+            document.getElementById('Totalvalsf').textContent = `Total de relatórios validados (Está gerando): ${totalValidados}`;
             
     document.getElementById('Totalesp').textContent = `Total de relatórios com erro: ${totalComErro}`;
 
@@ -671,7 +743,13 @@ function dd(texto) {
 
     document.getElementById('Totalpendentes').textContent = `Total de relatórios pendentes: ${Totalespe}`;
     
-    document.getElementById('Totalval').textContent = `Total de relatórios validados: ${Totalvalsf}`;
+    document.getElementById('Totalval').textContent = `Total de relatórios validados na função (Dentro do processo): ${Totalvalsf}`;
+    
+
+    document.getElementById('Totalvalc').textContent = `Total de relatórios validados pelo cliente (Validação final): ${Totalvalsc}`;
+
+    document.getElementById('totalalertas').textContent = `Total de relatórios com alertas resolvidos (Alertas ao consistir Java): ${totalalertas}`;
+
     
         }
     }
@@ -696,6 +774,18 @@ function dd(texto) {
             validarfuncao(id)
 
         }
+        else if (action == 'Validar Alertas'){
+            
+            validaralertas(id)
+
+        }
+        else if (action == 'Validação do cliente'){
+            
+            validadopelocliente(id)
+
+        }
+       
+      
     }
 
     function Resolvermodal(id){
@@ -744,7 +834,7 @@ function abrirmodalrelatarr(id){
 function getbyid(tarefaIdd) {
     console.log(tarefaIdd)
         var xhr = new XMLHttpRequest();
-        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaIdd}.json`;
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaIdd}.json`;
  
         xhr.open('GET', url, true);
         xhr.onreadystatechange = function () {
@@ -763,7 +853,7 @@ function getbyid(tarefaIdd) {
         const tarefaId = clicada
        
         var xhr = new XMLHttpRequest();
-        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
 
         xhr.open('PATCH', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -787,12 +877,71 @@ function getbyid(tarefaIdd) {
         
     }
 
+    
+    
+    function validaralertas(clicada) {
+        const tarefaId = clicada
+       
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
 
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como coddsffsdncluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
+
+
+        xhr.send(JSON.stringify({ alertasresolvidos: true,}));
+
+        
+    }
+
+
+    function validadopelocliente(clicada) {
+        const tarefaId = clicada
+       
+        var xhr = new XMLHttpRequest();
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
+
+        xhr.open('PATCH', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como coddsffsdncluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
+
+
+        xhr.send(JSON.stringify({ validadopelocliente: true,}));
+
+        
+    }
+
+    
     function Resolver() {
         const tarefaId = clicada
         console.log(tarefaId)
         var xhr = new XMLHttpRequest();
-        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
 
         xhr.open('PATCH', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -823,7 +972,7 @@ function getbyid(tarefaIdd) {
         const tarefaId = clicada
         console.log(tarefaId)
         var xhr = new XMLHttpRequest();
-        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
 
         xhr.open('PATCH', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -849,7 +998,7 @@ function getbyid(tarefaIdd) {
 
     function update(tarefaId) {
         var xhr = new XMLHttpRequest();
-        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios/${tarefaId}.json`;
+        var url = `https://appatividades-7450d-default-rtdb.firebaseio.com/relatorios2/${tarefaId}.json`;
 
         xhr.open('PATCH', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
