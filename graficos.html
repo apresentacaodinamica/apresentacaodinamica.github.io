@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Métricas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .chart-container {
+            width: 50%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Relatórios - Métricas</h1>
+
+    <div class="chart-container">
+        <canvas id="totalRelatoriosChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="relatoriosValidacaoChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="relatoriosAlertasChart"></canvas>
+    </div>
+
+    <script>
+        const totalRelatoriosData = {
+            labels: ['Relatórios com Erro', 'Relatórios Validados (Gerando)', 'Relatórios Validados na Função', 'Relatórios Validados pelo Cliente', 'Relatórios com Alertas Resolvidos', 'Relatórios Pendentes'],
+            datasets: [{
+                label: 'Total de Relatórios',
+                data: [394, 172, 34, 0, 20, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const totalRelatoriosConfig = {
+            type: 'bar',
+            data: totalRelatoriosData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        const totalRelatoriosChart = new Chart(
+            document.getElementById('totalRelatoriosChart'),
+            totalRelatoriosConfig
+        );
+
+        const validacaoData = {
+            labels: ['Relatórios Validados (Gerando)', 'Relatórios Validados na Função', 'Relatórios Validados pelo Cliente'],
+            datasets: [{
+                label: 'Validação dos Relatórios',
+                data: [172, 34, 0],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const validacaoConfig = {
+            type: 'pie',
+            data: validacaoData,
+        };
+
+        const relatoriosValidacaoChart = new Chart(
+            document.getElementById('relatoriosValidacaoChart'),
+            validacaoConfig
+        );
+
+        const alertasData = {
+            labels: ['Alertas Resolvidos', 'Alertas Pendentes'],
+            datasets: [{
+                label: 'Status dos Alertas',
+                data: [20, 0],
+                backgroundColor: [
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const alertasConfig = {
+            type: 'doughnut',
+            data: alertasData,
+        };
+
+        const relatoriosAlertasChart = new Chart(
+            document.getElementById('relatoriosAlertasChart'),
+            alertasConfig
+        );
+    </script>
+
+</body>
+</html>
