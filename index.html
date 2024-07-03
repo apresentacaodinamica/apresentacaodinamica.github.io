@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatórios migração</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         /* styles.css */
         body {
@@ -11,9 +13,16 @@
             padding: 20px;
             background-color: #f2f2f2;
         }
+        .chart-container {
+            width: 70%;
+            margin: 10px auto;
+        }
+        canvas {
+            display: block;
+        }
 
         .container {
-            max-height: 500px;
+            max-height: 1000px;
            
             border-radius: 10px;
             border: 1px solid #ccc;
@@ -200,11 +209,24 @@ td.actions {
          background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
          justify-content: center;
          align-items: center;
+         z-index: 100;
 }
 .bgconteudo{
          width: 350px;
          height: 100%;
          max-height: 380px;
+         
+         margin: 50px auto;
+         background-color: #fff;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+       
+}
+.bgconteudo2{
+         width: 1050px;
+         height: 100%;
+         max-height: 500px;
          
          margin: 50px auto;
          background-color: #fff;
@@ -274,6 +296,29 @@ td.actions {
 .bgcheck{
     margin-left: 25px;
     margin-bottom: 20px;
+}
+
+
+.metricas{
+  
+    padding: 4px;
+    cursor: pointer;
+    transition: .1s;
+    background-color: rgba(0, 81, 255, 0.524);
+    border-radius: 10px;    
+    max-width: 170px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+
+}
+.metricas:hover{
+    background-color: rgba(0, 81, 255, 0.223);
+}
+.metricas p{
+    color: white;
+    text-decoration: none;
 }
     </style>
 </head>
@@ -345,13 +390,49 @@ td.actions {
      </div>
      
 
+     <div id="modalgraficos" class="bgL">
+  
+        <div class="bgconteudo2">
+            <div style="position: relative; left: 480px; top: -40px; margin-bottom: 0;" class="fechar" onclick="fecharmodalgrficos()">
+                <p>X</p>
+   
+             </div>
 
+             <p id="textotitulo" style="margin: 0 auto; text-align: center; width: 100%;"></p>
+
+
+             <div style="cursor: pointer;  position: relative; left: 1010px;  top: 120px; font-size: 70px; border-radius: 100px; height: 80px; border: 1px solid rgba(0, 132, 255, 1); background-color: rgba(0, 132, 255, 0.518); width: 90px;" onclick="renderizargraficos()" >
+                <p style="color: #000f58; text-align: center; padding-left: 30px; position: relative; top: -70px;"> > </p>
+             </div>
+
+
+
+              <div class="bgcontentt" style="position: relative; top: 0px;">  
+            
+                <div class="chart-container">
+                    <canvas id="totalRelatoriosChart"></canvas>
+                </div>
+            
+           
+              </div>   
+            
+     
+            
+        </div>
+     </div>
+     
 
 
 
 
     <h1 class="titulop"> Gestão de relatórios para migração HTML5</h1>
     <div class="container">
+
+        <div class="metricas" onclick="abrirmodalgraficos()">
+
+        <p>Vizualizar métricas</p>
+
+        </div>
 
         <div class="metricasrelat" style="font-size: 10px;">
 
@@ -374,7 +455,7 @@ td.actions {
             
         </div>
 
-        <a href="graficos.html">olaamigo</a>
+     
 
         <div class="metricasrelat" style="font-size: 10px;">
             <p id="Totalpendentes" class="Total">Total de relatórios pendentes: 0</p>
@@ -590,17 +671,31 @@ function dd(texto) {
         xhr.send();
     }
 
-    function populateTable(data) {
 
-        //console.log(data)
-        let totalValidados = 0;
+    //console.log(data)
+    let totalValidados = 0;
         let Totalvalsf = 0;
         let Totalespe = 0;
         let Totalvalsc = 0;
-        let total = 0;
+       
         let totalalertas = 0
+        let totalComErro = 0;
+        let alertaspendentes = 0
 
-    let totalComErro = 0;
+    function populateTable(data) {
+        var total = 0
+    //console.log(data)
+         totalValidados = 0;
+         Totalvalsf = 0;
+         Totalespe = 0;
+         Totalvalsc = 0;
+
+         alertaspendentes = 0;
+         
+         totalalertas = 0
+    
+     totalComErro = 0;
+
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = '';
 
@@ -611,7 +706,7 @@ function dd(texto) {
             total = total + 1
             document.getElementById('Total').innerText = ` Total de relatórios: ${total}`
             var relatorio = data[id];
-            console.log(relatorio)
+            //console.log(relatorio)
             const tr = document.createElement('tr');
 
             const tdCodClassRelatorio = document.createElement('td');
@@ -644,7 +739,7 @@ if (relatorio.alertasresolvidos === true) {
     totalalertas++;
 
 }else{
-   
+    alertaspendentes++;
 const btn1 = createButton('Validar Alertas', id);
 btn1.classList.add('btnvalidaalertas');
 nactionTd.appendChild(btn1);
@@ -798,6 +893,9 @@ nactionTd.appendChild(btn1);
         abrirmodalrelatarr(id)
     }
 
+
+    
+
     var clicadafalsa = null
 
 function abrirmodalresolver(id){
@@ -826,7 +924,21 @@ function abrirmodalrelatarr(id){
     ResolverErro.style.display = 'initial'
 }
 
+function abrirmodalgraficos(){
+  const ResolverErro = document.getElementById('modalgraficos') 
+  ResolverErro.style.display = 'initial'
+    
+  setTimeout(() => {
+    renderizargraficos()
+  }, '2000');
 
+    
+}
+
+function fecharmodalgrficos(){
+    const ResolverErro = document.getElementById('modalgraficos') 
+  ResolverErro.style.display = 'none'
+}
 
 
 
@@ -1030,6 +1142,163 @@ function getbyid(tarefaIdd) {
     function fechar2(){
        const erro = document.getElementById('RlResolve') 
        erro.style.display = 'none'
+    }
+
+
+
+
+
+    let graficoatal = 0;
+    let totalRelatoriosChart = null;
+
+
+  
+
+
+
+    function renderizargraficos(){
+        const totalDeRelatoriosValidados = totalValidados;
+    const totalComErro2 = totalComErro; // Supondo que 'totalComErro' já está definido
+     // Supondo que 'total' já está definido
+    const totalPendentes = Totalespe; // Supondo que 'Totalespe' já está definido
+    const totalValidadoNaFuncao = Totalvalsf; // Supondo que 'Totalvalsf' já está definido
+    const totalValidadoPeloCliente = Totalvalsc; // Supondo que 'Totalvalsc' já está definido
+    const totalAlertasResolvidos = totalalertas; // Supondo que 'totalalertas' já está definido
+
+
+        console.log(graficoatal);
+
+// Destrói o gráfico anterior, se existir
+if (totalRelatoriosChart !== null) {
+    totalRelatoriosChart.destroy();
+}
+
+if (graficoatal === 0) {
+    // Dados e configuração do gráfico de relatórios
+    const totalRelatoriosData = {
+        labels: ['Relatórios com Erro', 'Relatórios Validados (Gerando)', 'Relatórios Validados na Função', 'Relatórios Validados pelo Cliente', 'Relatórios com Alertas Resolvidos', 'Relatórios Pendentes'],
+        datasets: [{
+            label: 'Total de Relatórios',
+            data: [totalComErro2, totalDeRelatoriosValidados, totalValidadoNaFuncao, totalValidadoPeloCliente, totalAlertasResolvidos, totalPendentes],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const totalRelatoriosConfig = {
+        type: 'bar',
+        data: totalRelatoriosData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    totalRelatoriosChart = new Chart(
+        document.getElementById('totalRelatoriosChart'),
+        totalRelatoriosConfig
+    );
+
+         const texto = document.getElementById('textotitulo');
+    texto.textContent = 'Relação Total de Relatórios'
+
+} else if (graficoatal === 1) {
+    // Dados e configuração do gráfico de validação
+    const validacaoData = {
+        labels: ['Relatórios Validados (Gerando)', 'Relatórios Validados na Função', 'Relatórios Validados pelo Cliente'],
+        datasets: [{
+            label: 'Validação dos Relatórios',
+            data: [totalDeRelatoriosValidados, totalValidadoNaFuncao, totalValidadoPeloCliente],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(255, 99, 132, 0.2)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const validacaoConfig = {
+        type: 'pie',
+        data: validacaoData,
+    };
+
+    totalRelatoriosChart = new Chart(
+        document.getElementById('totalRelatoriosChart'),
+        validacaoConfig
+    );
+
+        const texto = document.getElementById('textotitulo');
+    texto.textContent = 'Relação Relatórios validados X Relatórios validados na função X Relatórios Validados pelo cliente'
+
+
+} else if (graficoatal === 2) {
+    // Dados e configuração do gráfico de alertas
+    const alertasData = {
+        labels: ['Alertas Resolvidos', 'Alertas Pendentes'],
+        datasets: [{
+            label: 'Status dos Alertas',
+            data: [totalalertas, alertaspendentes],
+            backgroundColor: [
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 99, 132, 0.2)'
+            ],
+            borderColor: [
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const alertasConfig = {
+        type: 'doughnut',
+        data: alertasData,
+    };
+
+    totalRelatoriosChart = new Chart(
+        document.getElementById('totalRelatoriosChart'),
+        alertasConfig
+    );
+    const texto = document.getElementById('textotitulo');
+    texto.textContent = 'Relação Alertas resolvidos X alertas pendentes'
+
+}
+
+const canvas = document.getElementById('totalRelatoriosChart');
+        
+        // Defina o tamanho do canvas via JavaScript
+        canvas.style.width = '550px';  // Largura desejada
+        canvas.style.height = '300px'; // Altura desejada
+
+        canvas.style.margin = '0 auto'
+
+// Incrementa ou reseta o contador
+graficoatal = (graficoatal + 1) % 3;
+
     }
 
 
