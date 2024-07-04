@@ -672,7 +672,7 @@ function dd(texto) {
      var clicada = null
     // script.js
     fazerRequisicaoGet()
-    graficoperiodo()
+
   
     var total = 0
 
@@ -686,6 +686,7 @@ function dd(texto) {
                 const relatorios = JSON.parse(xhr.responseText);
                
                 populateTable(relatorios);
+                graficoperiodo()
             }
         };
         xhr.send();
@@ -1357,7 +1358,14 @@ graficoatal = (graficoatal + 1) % 3;
     return agrupados;
 }
 
+let relatdiario = null
+
 function graficoperiodo() {
+
+    if (relatdiario !== null) {
+        relatdiario.destroy();
+}
+
     setTimeout(() => {
         const dadosAgrupados = agruparDadosPorData(dataglobal);
 
@@ -1390,7 +1398,7 @@ function graficoperiodo() {
 
         // Renderizando o gráfico
         const ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, config);
+        relatdiario = new Chart(ctx, config);
 
 
         const canvas = document.getElementById('myChart');
