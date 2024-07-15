@@ -1337,7 +1337,6 @@ graficoatal = (graficoatal + 1) % 3;
     }
 
 
-
     function agruparDadosPorData(data) {
     const agrupados = {};
 
@@ -1355,16 +1354,28 @@ graficoatal = (graficoatal + 1) % 3;
         agrupados[date] += 1;
     }
 
-    return agrupados;
+    // Converter as datas para objetos Date e ordenar
+    const datasOrdenadas = Object.keys(agrupados).sort((a, b) => {
+        const dateA = new Date(a.split('/').reverse().join('-'));
+        const dateB = new Date(b.split('/').reverse().join('-'));
+        return dateA - dateB;
+    });
+
+    // Criar um novo objeto ordenado
+    const agrupadosOrdenados = {};
+    datasOrdenadas.forEach(date => {
+        agrupadosOrdenados[date] = agrupados[date];
+    });
+
+    return agrupadosOrdenados;
 }
 
-let relatdiario = null
+let relatdiario = null;
 
 function graficoperiodo() {
-
     if (relatdiario !== null) {
         relatdiario.destroy();
-}
+    }
 
     setTimeout(() => {
         const dadosAgrupados = agruparDadosPorData(dataglobal);
@@ -1400,19 +1411,18 @@ function graficoperiodo() {
         const ctx = document.getElementById('myChart').getContext('2d');
         relatdiario = new Chart(ctx, config);
 
-
         const canvas = document.getElementById('myChart');
         
         // Defina o tamanho do canvas via JavaScript
         canvas.style.width = '550px';  // Largura desejada
         canvas.style.height = '200px'; // Altura desejada
 
-        canvas.style.margin = '0 auto'
-
-        canvas.style.backgroundColor = 'rgba(54, 162, 235, 0.1)'
+        canvas.style.margin = '0 auto';
+        canvas.style.backgroundColor = 'rgba(54, 162, 235, 0.1)';
         
     }, 2000);
 }
+
 
 
 
