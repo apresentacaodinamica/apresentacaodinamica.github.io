@@ -470,7 +470,7 @@ td.actions {
 <div style="position: relative;   top: -200px;
     left: 320px;">
 
-    <div style="display: flex; width: 400px; margin: 0 auto;">
+    <div style="display: flex; width: 500px; margin: 0 auto; position: relative; left: 40px;">
         <div class="metricas" style=" background-color: rgba(177, 22, 22, 0.678); position: relative;" onclick="graficoperiodo()">
 
             <p style="font-size: 15px;">Resolução de erros</p>
@@ -482,6 +482,12 @@ td.actions {
                 <p style="font-size: 15px;">Validação na função</p>
         
                 </div>
+
+                <div class="metricas" style="background-color: rgba(15, 137, 168, 0.678); position: relative; left: 40px;" onclick="graficoalertas()">
+
+                    <p style="font-size: 15px;">Alertas resolvidos</p>
+            
+                    </div>
     </div>
 
 
@@ -1013,7 +1019,23 @@ function getbyid(tarefaIdd) {
         };
 
 
-        xhr.send(JSON.stringify({ alertasresolvidos: true,}));
+        var dataConclusao = new Date().toISOString();
+
+            // Converter a data para um objeto Date
+            var dataObj = new Date(dataConclusao);
+
+            // Extrair o dia, mês e ano do objeto Date
+            var dia = dataObj.getUTCDate().toString().padStart(2, '0');
+            var mes = (dataObj.getUTCMonth() + 1).toString().padStart(2, '0'); // Os meses em JavaScript são baseados em zero
+            var ano = dataObj.getUTCFullYear();
+
+            // Formatar a data no formato desejado
+            var dataFormatada = `${dia}/${mes}/${ano}`;
+
+            console.log(dataFormatada);
+
+
+        xhr.send(JSON.stringify({Datavalidacaoalerta: `${dataFormatada}`, alertasresolvidos: true,}));
 
         
     }
@@ -1355,7 +1377,39 @@ return agrupadosOrdenados;
     }
 
 
+    function agruparDadosPorData3(data) {
+    const agrupados = {};
 
+    for (var id in data) {
+        var item = data[id];
+        var date = null
+        date = item.Datavalidacaoalerta;
+        console.log(date)
+        // Ignorar itens com data vazia
+        if (date === "" || date == null) continue;
+
+        if (!agrupados[date]) {
+            agrupados[date] = 0;
+        }
+
+        agrupados[date] += 1;
+    }
+
+    // Converter as datas para objetos Date e ordenar
+    const datasOrdenadas = Object.keys(agrupados).sort((a, b) => {
+        const dateA = new Date(a.split('/').reverse().join('-'));
+        const dateB = new Date(b.split('/').reverse().join('-'));
+        return dateA - dateB;
+    });
+
+    // Criar um novo objeto ordenado
+    const agrupadosOrdenados = {};
+    datasOrdenadas.forEach(date => {
+        agrupadosOrdenados[date] = agrupados[date];
+    });
+
+    return agrupadosOrdenados;
+}
 
 
 
@@ -1499,6 +1553,58 @@ function graficovalidacao(){
 }
 
 
+
+
+function graficoalertas(){
+    if (relatdiario !== null) {
+        relatdiario.destroy();
+    }
+
+    setTimeout(() => {
+    const dadosAgrupados = agruparDadosPorData3(dataglobal);
+
+// Preparando os dados para o Chart.js
+const labels = Object.keys(dadosAgrupados);
+const valores = Object.values(dadosAgrupados);
+
+// Configuração do gráfico
+const config = {
+    type: 'line', // Alterado para 'line'
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Total relatórios com alertas validados por dia',
+            data: valores,
+            backgroundColor: 'rgba(15, 137, 168, 0.2)',
+            borderColor: 'rgba(15, 137, 168)',
+            borderWidth: 1,
+            fill: false // Desabilita o preenchimento abaixo da linha
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    },  
+};
+
+// Renderizando o gráfico
+const ctx = document.getElementById('myChart').getContext('2d');
+relatdiario = new Chart(ctx, config);
+
+const canvas = document.getElementById('myChart');
+
+// Defina o tamanho do canvas via JavaScript
+canvas.style.width = '550px';  // Largura desejada
+canvas.style.height = '200px'; // Altura desejada
+
+canvas.style.margin = '0 auto';
+canvas.style.backgroundColor = 'rgba(15, 137, 168, 0.1)';
+
+}, 2000);
+}
 
 </script>
 
