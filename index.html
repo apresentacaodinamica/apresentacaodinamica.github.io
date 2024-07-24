@@ -323,8 +323,7 @@ td.actions {
 }
 .graficoestatico{
     position: relative;
-    top: -200px;
-    left: 320px;
+  
 }
     </style>
 </head>
@@ -465,26 +464,40 @@ td.actions {
             <p id="Totalpendentes" class="Total">Total de relatórios pendentes: 0</p>
         </div>
 
-     
-<div style="display: flex;">
-        <div class="metricas" style="position: relative; left: 750px; top: -200px;" onclick="graficoperiodo()">
+
+
+
+<div style="position: relative;   top: -200px;
+    left: 320px;">
+
+    <div style="display: flex; width: 400px; margin: 0 auto;">
+        <div class="metricas" style=" background-color: rgba(177, 22, 22, 0.678); position: relative;" onclick="graficoperiodo()">
 
             <p style="font-size: 15px;">Resolução de erros</p>
     
             </div>
 
-            <div class="metricas" style="position: relative; left: 800px; top: -200px;" onclick="graficovalidacao()">
+            <div class="metricas" style="background-color: rgba(15, 168, 56, 0.678); position: relative; left: 20px;" onclick="graficovalidacao()">
 
                 <p style="font-size: 15px;">Validação na função</p>
         
                 </div>
-                </div>
-        <div class="graficoestatico">
+    </div>
 
-            <canvas id="myChart"></canvas>
-        
-        </div>
-       
+
+    <div class="graficoestatico">
+
+        <canvas id="myChart"></canvas>
+    
+    </div>
+   
+</div>
+
+
+
+
+
+     
 
 
 
@@ -1454,8 +1467,8 @@ function graficovalidacao(){
                 datasets: [{
                     label: 'Total relatórios validados na função por dia',
                     data: valores,
-                    backgroundColor: 'rgba(99, 187, 255, 0.2)',
-                    borderColor: 'rgba(99, 187, 255)',
+                    backgroundColor: 'rgba(15, 168, 56, 0.2)',
+                    borderColor: 'rgba(15, 168, 56)',
                     borderWidth: 1,
                     fill: false // Desabilita o preenchimento abaixo da linha
                 }]
@@ -1480,7 +1493,7 @@ function graficovalidacao(){
         canvas.style.height = '200px'; // Altura desejada
 
         canvas.style.margin = '0 auto';
-        canvas.style.backgroundColor = 'rgba(54, 162, 235, 0.1)';
+        canvas.style.backgroundColor = 'rgba(15, 168, 56, 0.1)';
         
     }, 2000);
 }
