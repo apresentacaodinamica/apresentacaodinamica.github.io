@@ -490,6 +490,13 @@ td.actions {
             <input type="checkbox" id="checkbox2" name="Relatórios importantes">
             <span>Relatórios importantes</span>
         </label>
+
+
+        <label class="custom-checkbox">
+            <input type="checkbox" id="checkbox3" name="Relatórioserro">
+            <span>Relatórios com erro</span>
+        </label>
+
         </div>
 
 <div class="containertable">
@@ -519,35 +526,78 @@ var dataglobal = null
 
 const checkbox1 = document.getElementById('checkbox1');
     const checkbox2 = document.getElementById('checkbox2');
+    const checkbox3 = document.getElementById('checkbox3');
+
     checkbox1.addEventListener('change', function() {
     if (this.checked) {
         checkbox2.checked = false;
+        checkbox3.checked = false;
         fazerRequisicaoGet(); // Adicione isso para atualizar os dados
     }
 });
     
-    checkbox2.addEventListener('change', function() {
+checkbox2.addEventListener('change', function() {
+    if (this.checked) {
+        const lista = {};
+        checkbox1.checked = false;
+        checkbox3.checked = false;
+
+        for (var id in dataglobal) {
+            console.log(id);
+            const relatorio = dataglobal[id];
+            const ndescr = relatorio.importancia;
+
+            if (ndescr) {
+                lista[id] = relatorio;  // Mantenha a estrutura original
+            }
+        }
+
+        console.log(lista);  // Verifique se a estrutura está correta
+        populateTable(lista);  // Passe a estrutura filtrada para a função populateTable
+    }
+});
+
+
+function getcomerro(){
+    const lista = {};
+       
+        for (var id in dataglobal) {
+            console.log(id);
+            const relatorio = dataglobal[id];
+            const ndescr = relatorio.Erro;
+
+            if (ndescr) {
+                lista[id] = relatorio;  // Mantenha a estrutura original
+            }
+        }
+
+        console.log(lista);  // Verifique se a estrutura está correta
+        populateTable(lista); 
+}
+
+
+    checkbox3.addEventListener('change', function() {
         if (this.checked) {
             const lista = []
             checkbox1.checked = false;
-            
-         for (var id in dataglobal) {
+            checkbox2.checked = false;
 
-            var relatorio = dataglobal[id];
+            for (var id in dataglobal) {
+            console.log(id);
+            const relatorio = dataglobal[id];
+            const ndescr = relatorio.Erro;
 
-
-            var ndescr = relatorio.importancia
-           
             if (ndescr) {
-                lista.push(dataglobal[id])
+                lista[id] = relatorio;  // Mantenha a estrutura original
             }
-         
-        
-            }
-            populateTable(lista)
+        }
+
+        console.log(lista);  // Verifique se a estrutura está correta
+        populateTable(lista); 
         
         }
     });
+
 
 
 
@@ -555,119 +605,6 @@ const checkbox1 = document.getElementById('checkbox1');
 //    pesquisarportitulo()
 // }, "1000");
  
-
-
-
-
-function pesquisarportitulo(){
-   var pesquisa = document.getElementById('pesquisa').value
-   var np = `${pesquisa}`
-    
-
-   
-
-   if(np == ""){
-    if (checkbox2.checked) {
-            const lista = []
-            checkbox1.checked = false;
-            
-         for (var id in dataglobal) {
-
-            var relatorio = dataglobal[id];
-
-
-            var ndescr = relatorio.importancia
-           
-            if (ndescr) {
-                lista.push(dataglobal[id])
-            }
-         
-        
-            }
-            populateTable(lista)
-        
-        }else{
-              fazerRequisicaoGet()
-        }
-    
-   }else{
-    
-    var o = dd(np)
-
-    //  var n = deixarMinusculoSemAcentos(np)
-d(o)
-    //      exibirTarefaspesquisa(o)
-   
-      
-   }
-}
-
-function d(o){
-    console.log(o)
-    
-         const lista = []
-     
-        // console.log(dataglobal)
-    
-          for (var id in dataglobal) {
-
-             var relatorio = dataglobal[id];
-               // console.log(relatorio)
-    
-            var ndescr = relatorio.DS_TITULO;
-             var cdrelat = String(relatorio.CD_RELATORIO);
-             var classrelat = relatorio.CD_CLASSIF_RELAT;
-
-             //var descr = dd(ndescr)
-
-            if(ndescr.includes(o) || cdrelat.includes(o) || classrelat.includes(o)){
-              
-               lista.push(dataglobal[id])
-             }else{
-                //console.log("sem reultados")
-             }
-            
-          }
-             
-
-         if (!lista.length) {
-            fazerRequisicaoGet()
-         } else {
-            populateTable(lista)
-         }
-}
-
-
-
-function exibirTarefaspesquisa(o){
-  
-        
-      }
-
-
-
-
-
-
-
-function removerAcentos(texto) {
-
-        var tev = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return tev
- 
-}
-
-function dd(texto) {
-
-    return removerAcentos(texto).toLowerCase();
-
-}
-
-
-
-
-
-
 
      var clicada = null
     // script.js
@@ -686,6 +623,8 @@ function dd(texto) {
                 const relatorios = JSON.parse(xhr.responseText);
                
                 populateTable(relatorios);
+                console.log(relatorios)
+                console.log(typeof(relatorios))
                 graficoperiodo()
             }
         };
@@ -1086,7 +1025,14 @@ function getbyid(tarefaIdd) {
                     console.log('Tarefa marcada como concluída com sucesso!');
 
                     setTimeout(function() {
+                        if(checkbox3.checked = true){
+                            fazerRequisicaoGet();
+                            setTimeout(() => {
+                                getcomerro()
+                            }, "1000");
+                        }
                         fazerRequisicaoGet();
+
                     }, 1000);
                 } else {
                     console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
