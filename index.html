@@ -567,6 +567,44 @@ td.actions {
 
     <script>
 
+
+
+
+teste()
+   
+function teste() {
+        const tarefaId = 'ola'
+       
+        var xhr = new XMLHttpRequest();
+        var url = `https://novobancodados-default-rtdb.firebaseio.com/novo/.json`;
+
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log('Tarefa marcada como coddsffsdncluída com sucesso!');
+
+                    setTimeout(function() {
+                        fazerRequisicaoGet();
+                    }, 1000);
+                } else {
+                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
+                }
+            }
+        };
+
+
+
+        xhr.send(JSON.stringify({Datavalidacaoalerta: `${tarefaId}`}));
+
+        
+    }
+
+
+
+
+
 var dataglobal = null
 
 
