@@ -325,9 +325,127 @@ td.actions {
     position: relative;
   
 }
+.bgcontentt{
+   width: 100%;
+   height: 100%;
+     overflow: auto;
+}
+.bgcontentt h1{
+	font-size: 20px;
+  text-align: center;
+  color:	 #22233a;
+  font-weight: 200;
+}
+
+.loginbtn{
+         text-align: center;
+         width: 100%;
+         max-width: 150px;
+         padding: 15px;
+         padding-top:0px;
+         height: 30px;
+         color: white;
+         border: 1px solid white;
+         border-radius: 12px;
+         background-color: #0c8762;
+         margin: 0 auto;
+         margin-top: 80px;
+         cursor: pointer;
+		 transition: .3s;
+  }
+  .loginbtn:hover{
+	background-color: #b9c8c4;
+	color: #0c8762;
+  }
+  .bgL3{
+     
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+     justify-content: center;
+     align-items: center;
+     z-index: 100000;
+}
+.bgconteudolog{
+
+width: 340px;
+height: 100%;
+max-height: 320px;
+margin: 150px auto;
+background-color: #fff;
+padding: 20px;
+overflow-x: hidden;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+
+}
+.msgerro{
+           width: 300px;
+        text-align: center;
+         height: 100%;
+         max-height: 50px;
+         margin: 50px auto;
+         background-color: red;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+         z-index: 100000000000000000000000000000000;
+}
+
+.msgerro p{
+   font-size: 18px;
+   color:white;
+}
     </style>
 </head>
+
 <body>
+
+    <div id="errologin" class="bgL3" style="display: none; z-index: 2901920129109201921929102190;">
+  
+        <div class="msgerro">
+     
+                  <p>Credenciais incorretas</p>
+        </div>
+     </div>
+    
+
+
+
+    
+<div id="paglogin">
+
+	<div id="cadastroid" class="bgL3">
+  
+		<div class="bgconteudolog">
+	 
+			  <div class="bgcontentt">
+
+					<h1 style="	font-family: 'Roboto', sans-serif;
+					font-weight: 400; margin-bottom: 40px;">Relizar login para acessar painel</h1>
+
+					<input type="text" id="nomeuser" placeholder="Nome: ">
+					<input type="password" id="senhauserc" placeholder="Senha: ">
+	 
+
+                 
+					
+			<div class="loginbtn" onclick="login()">
+				  <p>Login</p>
+			   </div>
+			
+			  </div>
+			
+	 
+			
+		</div>
+	 </div>
+
+</div>
+
 
     <div id="RlResolve" class="bgL">
   
@@ -565,40 +683,100 @@ td.actions {
 </div>
     </div>
 
+
+
+
+
+    
     <script>
+  var user = null;
+
+  //localStorage.clear();
+
+
+const valor = localStorage.getItem('autenticado');
+console.log(valor)
+
+
+if(valor){
+    var cadastro = document.getElementById('paglogin');
+    cadastro.style.display = "none"
+}
+
+function login(){	
 
 
 
+usuario = document.getElementById('nomeuser').value
+senha = document.getElementById('senhauserc').value
 
-   
-function teste() {
-        const tarefaId = 'ola'
-       
-        var xhr = new XMLHttpRequest();
-        var url = `https://novobancodados-default-rtdb.firebaseio.com/novo/.json`;
-
-        xhr.open('POST', url, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4) {
-                if (xhr.status == 200) {
-                    console.log('Tarefa marcada como coddsffsdncluída com sucesso!');
-
-                    setTimeout(function() {
-                        fazerRequisicaoGet();
-                    }, 1000);
-                } else {
-                    console.error('Erro ao marcar como concluída:', xhr.status, xhr.statusText);
-                }
-            }
-        };
+getusuarios(usuario, senha)
 
 
 
-        xhr.send(JSON.stringify({Datavalidacaoalerta: `${tarefaId}`}));
+      setTimeout(function() {
 
-        
+
+    
+if(user){
+
+var cadastro = document.getElementById('paglogin');
+cadastro.style.display = "none"
+
+//salvar credenciais 
+localStorage.setItem('autenticado', true);
+
+
+setTimeout(() => {
+    fazerRequisicaoGet();
+}, "1000");
+
+
+}else{
+  var errologins = document.getElementById('errologin');
+        errologins.style.display = "initial"
+
+      setTimeout(function() {
+
+         errologins.style.display = "none"
+      }, 2000);
+  }}, 2000);	
+
     }
+
+
+
+
+
+
+function getusuarios(nome, senha) {
+   var xhr = new XMLHttpRequest();
+   xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/usuarios.json', true);
+   xhr.onreadystatechange = function () {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+         var usuario = JSON.parse(xhr.responseText);
+         var users = [];
+         
+         // Itera sobre cada chave (ID) no objeto
+         for (var id in usuario) {
+            // Verifica se a descrição é igual ao parâmetro
+            if (usuario[id].nome === nome && usuario[id].senha === senha) {
+               // Adiciona o ID ao objeto da tarefa
+               user = usuario[id];
+               user.id = id; //???
+               users.push(user);
+            }
+         }
+
+         // Exibe as tarefas encontradas
+         
+      }
+   };
+   xhr.send();
+}
+
+
+
 
 
 
@@ -824,6 +1002,12 @@ setTimeout(() => {
         let totalComErro = 0;
         let alertaspendentes = 0
 
+
+
+
+
+
+        
     function populateTable(data) {
         var total = 0
     //console.log(data)
