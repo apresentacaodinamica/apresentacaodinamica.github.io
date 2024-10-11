@@ -952,9 +952,14 @@ setTimeout(() => {
             const relatorio = dataglobal[id];
             const ndescr = relatorio.validadonafuncao;
 
+
+            const presc = relatorio.DS_TITULO
+
+            const tem = verificaPalavra(presc)
+
             const ndescr2 = relatorio.Erro;
 
-            if (!ndescr && !ndescr2) {
+            if (!ndescr && !ndescr2 && !tem) {
                 lista[id] = relatorio;  // Mantenha a estrutura original
             }
         }
@@ -964,6 +969,15 @@ setTimeout(() => {
         
         }}, "2000");
     });
+
+
+
+function verificaPalavra(str) {
+    const palavras = ["Prescrição", "prescrição","PRESCRIÇÃO", "ETIQUETA", "Etiqueta", "etiqueta"];
+    return palavras.some(palavra => str.includes(palavra));
+}
+
+
 
     checkbox5.addEventListener('change', function() {
         fazerRequisicaoGet(); 
@@ -1439,7 +1453,7 @@ function getbyid(tarefaIdd) {
 
         
     }
-
+ 
     
     function Resolver() {
         const tarefaId = clicada
