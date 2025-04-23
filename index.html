@@ -290,21 +290,10 @@
     <div class="container">
         <div class="header">
             <h1>Gestão de Perfis para Relatórios</h1>
-            <div id="user-info" style="display: none;">
-                <span id="username"></span>
-                <button onclick="logout()" style="margin-left: 10px;">Sair</button>
-            </div>
+           
         </div>
         
-        <div id="login-container">
-            <div style="max-width: 400px; margin: 50px auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <h2 style="text-align: center; margin-bottom: 20px;">Login</h2>
-                <input type="text" id="login-email" placeholder="Usuário" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                <input type="password" id="login-password" placeholder="Senha" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                <button onclick="login()" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Entrar</button>
-                <p id="login-error" style="color: red; text-align: center; margin-top: 10px; display: none;">Credenciais incorretas</p>
-            </div>
-        </div>
+    
         
         <div id="app-container" style="display: none;">
             <div class="search-container">
@@ -407,7 +396,7 @@
                 currentUser = JSON.parse(user);
                 showApp();
             } else {
-                showLogin();
+                //showLogin();
             }
         }
         
@@ -445,13 +434,13 @@
         }
         
         function showApp() {
-            document.getElementById('login-container').style.display = 'none';
+
             document.getElementById('app-container').style.display = 'block';
-            document.getElementById('user-info').style.display = 'block';
-            document.getElementById('username').textContent = currentUser.nome;
-            
+          
             carregarDados();
         }
+
+        showApp()
         
         function login() {
             const email = document.getElementById('login-email').value;
