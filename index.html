@@ -1,927 +1,948 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Perfis para Relatórios</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Gestão de Gastos Pessoais</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f2f2f2;
-            overflow-x: hidden;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-        
-        .header {
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
         }
-        
-        .card {
-            background-color: #fff;
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-controls select {
+            padding: 10px;
+            border: none;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 15px;
-            cursor: pointer;
-            transition: transform 0.2s;
+            background: white;
+            color: #2c3e50;
+            font-weight: 500;
         }
-        
+
+        .btn-filter {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .resumo-financeiro {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
-        .card-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        
-        .card-code {
-            font-size: 12px;
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
             color: #666;
-            margin-bottom: 5px;
         }
-        
-        .card-status {
+
+        .card span {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .resumo-entrada span {
+            color: #27ae60;
+        }
+        .resumo-saida span {
+            color: #e74c3c;
+        }
+        .resumo-saldo span {
+            color: #3498db;
+        }
+
+        .acoes {
+            padding: 20px 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-top: 5px;
         }
-        
-        .status-validado {
-            background-color: #d4edda;
-            color: #155724;
+
+        .btn-entrada {
+            background: #27ae60;
+            color: white;
         }
-        
-        .status-pendente {
-            background-color: #fff3cd;
-            color: #856404;
+
+        .btn-entrada:hover {
+            background: #219a52;
+            transform: translateY(-2px);
         }
-        
-        .status-erro {
-            background-color: #f8d7da;
-            color: #721c24;
+
+        .btn-saida {
+            background: #e74c3c;
+            color: white;
         }
-        
-        .status-faltante {
-            background-color: #ffeeba;
-            color: #856404;
+
+        .btn-saida:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
         }
-        
+
+        .btn-objetivo {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-objetivo:hover {
+            background: #d68910;
+            transform: translateY(-2px);
+        }
+
+        .tabela-container {
+            padding: 30px;
+        }
+
+        .tabela-container h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .entrada {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .saida {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .sem-dados {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .objetivos-container {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .objetivos-container h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .lista-objetivos {
+            display: grid;
+            gap: 15px;
+        }
+
+        .objetivo-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #f39c12;
+        }
+
+        .objetivo-item h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .objetivo-item .valor-meta {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f39c12;
+            margin-bottom: 10px;
+        }
+
+        .objetivo-item p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
         }
-        
+
         .modal-content {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
         }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .modal-title {
-            font-size: 20px;
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
             font-weight: bold;
-        }
-        
-        .close-btn {
             cursor: pointer;
-            font-size: 24px;
-            color: #999;
+            transition: color 0.3s ease;
         }
-        
-        .perfis-list {
-            margin-top: 20px;
+
+        .close:hover {
+            color: #e74c3c;
         }
-        
-        .perfil-item {
+
+        .modal-content h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .modal-content form {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .perfil-name {
-            flex-grow: 1;
-        }
-        
-        .perfil-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            border: none;
-            font-size: 12px;
-        }
-        
-        .btn-validar {
-            background-color: #28a745;
-            color: white;
-        }
-        
-        .btn-pendente {
-            background-color: #ffc107;
-            color: #212529;
-        }
-        
-        .btn-faltante {
-            background-color: #fd7e14;
-            color: white;
-        }
-        
-        .btn-remover {
-            background-color: #dc3545;
-            color: white;
-        }
-        
-        .add-perfil-form {
-            display: flex;
-            margin-top: 20px;
-            gap: 10px;
-        }
-        
-        .add-perfil-input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .add-perfil-btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-        
-        .tab.active {
-            border-bottom: 2px solid #007bff;
-            color: #007bff;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .search-container {
-            margin-bottom: 20px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .filtros-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .filtro-btn {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f8f9fa;
-            cursor: pointer;
-        }
-        
-        .filtro-btn.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-        
-        .metricas-container {
-            display: flex;
+            flex-direction: column;
             gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
         }
-        
-        .metrica-card {
-            background-color: #fff;
-            padding: 15px;
+
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            min-width: 150px;
-            text-align: center;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
         }
-        
-        .metrica-valor {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
+
+        .modal-content input:focus,
+        .modal-content select:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #3498db;
         }
-        
-        .metrica-label {
-            font-size: 12px;
-            color: #666;
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .header-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .resumo-financeiro {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .acoes {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .tabela-container {
+                padding: 20px;
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Gestão de Perfis para Relatórios</h1>
-           
+        <header>
+            <h1>💰 Gestão de Gastos Pessoais</h1>
+            <div class="header-controls">
+                <select id="mesFilter">
+                    <option value="">Selecione o mês</option>
+                    <option value="01">Janeiro</option>
+                    <option value="02">Fevereiro</option>
+                    <option value="03">Março</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Maio</option>
+                    <option value="06">Junho</option>
+                    <option value="07">Julho</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select id="anoFilter">
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2026">2026</option>
+                </select>
+                <button onclick="filtrarPorMes()" class="btn-filter">Filtrar</button>
+            </div>
+        </header>
+
+        <!-- Resumo Financeiro -->
+        <div class="resumo-financeiro">
+            <div class="card resumo-entrada">
+                <h3>💚 Total Entradas</h3>
+                <span id="totalEntradas">R$ 0,00</span>
+            </div>
+            <div class="card resumo-saida">
+                <h3>❌ Total Saídas</h3>
+                <span id="totalSaidas">R$ 0,00</span>
+            </div>
+            <div class="card resumo-saldo">
+                <h3>💰 Saldo Final</h3>
+                <span id="saldoFinal">R$ 0,00</span>
+            </div>
         </div>
-        
-    
-        
-        <div id="app-container" style="display: none;">
-            <div class="search-container">
-                <input type="text" id="search-input" class="search-input" placeholder="Pesquisar relatórios...">
-            </div>
-            
-            <div class="filtros-container">
-                <button class="filtro-btn active" data-filtro="todos">Todos</button>
-                <button class="filtro-btn" data-filtro="validados">Validados</button>
-                <button class="filtro-btn" data-filtro="pendentes">Pendentes</button>
-                <button class="filtro-btn" data-filtro="faltantes">Faltantes</button>
-            </div>
-            
-            <div class="metricas-container">
-                <div class="metrica-card">
-                    <div class="metrica-valor" id="total-relatorios">0</div>
-                    <div class="metrica-label">Relatórios</div>
-                </div>
-                <div class="metrica-card">
-                    <div class="metrica-valor" id="total-perfis">0</div>
-                    <div class="metrica-label">Perfis</div>
-                </div>
-                <div class="metrica-card">
-                    <div class="metrica-valor" id="perfis-validados">0</div>
-                    <div class="metrica-label">Perfis validados</div>
-                </div>
-                <div class="metrica-card">
-                    <div class="metrica-valor" id="perfis-pendentes">0</div>
-                    <div class="metrica-label">Perfis pendentes</div>
-                </div>
-                <div class="metrica-card">
-                    <div class="metrica-valor" id="perfis-faltantes">0</div>
-                    <div class="metrica-label">Perfis faltantes</div>
-                </div>
-            </div>
-            
-            <div class="cards-container" id="cards-container">
-                <!-- Cards serão gerados dinamicamente aqui -->
+
+        <!-- Botões de Ação -->
+        <div class="acoes">
+            <button onclick="abrirModal('modalEntrada')" class="btn btn-entrada">+ Nova Entrada</button>
+            <button onclick="abrirModal('modalSaida')" class="btn btn-saida">+ Nova Saída</button>
+            <button onclick="abrirModal('modalObjetivo')" class="btn btn-objetivo">🎯 Objetivos</button>
+        </div>
+
+        <!-- Tabela de Transações -->
+        <div class="tabela-container">
+            <h2 id="tituloMes">Transações do Mês</h2>
+            <table id="tabelaTransacoes">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabela">
+                    <tr>
+                        <td colspan="6" class="sem-dados">Nenhuma transação encontrada</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Objetivos -->
+        <div class="objetivos-container">
+            <h2>🎯 Objetivos do Mês</h2>
+            <div id="listaObjetivos" class="lista-objetivos">
+                <p class="sem-dados">Nenhum objetivo cadastrado</p>
             </div>
         </div>
     </div>
-    
-    <div id="perfis-modal" class="modal">
+
+    <!-- Modal Nova Entrada -->
+    <div id="modalEntrada" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modal-title">Perfis do Relatório</div>
-                <span class="close-btn" onclick="closeModal()">&times;</span>
-            </div>
-            
-            <div class="tabs">
-                <div class="tab active" data-tab="perfis">Perfis Existentes</div>
-                <div class="tab" data-tab="faltantes">Perfis Faltantes</div>
-            </div>
-            
-            <div class="tab-content active" id="perfis-tab">
-                <div class="perfis-list" id="perfis-list">
-                    <!-- Perfis serão adicionados dinamicamente aqui -->
-                </div>
-                
-                <div class="add-perfil-form">
-                 
-
-                
-                    <input type="text" id="perfil-select" class="add-perfil-input" placeholder="Nome do perfil">
-
-                    <button class="add-perfil-btn" onclick="adicionarPerfil()">Adicionar Perfil</button>
-                </div>
-            </div>
-            
-            <div class="tab-content" id="faltantes-tab">
-                <div class="perfis-list" id="faltantes-list">
-                    <!-- Perfis faltantes serão adicionados dinamicamente aqui -->
-                </div>
-                
-                <div class="add-perfil-form">
-                    <input type="text" id="novo-perfil-input" class="add-perfil-input" placeholder="Nome do novo perfil">
-                    <button class="add-perfil-btn" onclick="adicionarPerfilFaltante()">Adicionar Faltante</button>
-                </div>
-            </div>
+            <span class="close" onclick="fecharModal('modalEntrada')">&times;</span>
+            <h2>💚 Nova Entrada</h2>
+            <form id="formEntrada">
+                <input type="text" id="tituloEntrada" placeholder="Título da entrada" required>
+                <input type="number" id="valorEntrada" placeholder="Valor" step="0.01" required>
+                <select id="tipoEntrada" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="fixo">Fixo/Recorrente</option>
+                    <option value="variavel">Variável</option>
+                </select>
+                <input type="date" id="dataEntrada" required>
+                <button type="submit" class="btn btn-entrada">Salvar Entrada</button>
+            </form>
         </div>
     </div>
-    
+
+    <!-- Modal Nova Saída -->
+    <div id="modalSaida" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalSaida')">&times;</span>
+            <h2>❌ Nova Saída</h2>
+            <form id="formSaida">
+                <input type="text" id="tituloSaida" placeholder="Título da saída" required>
+                <input type="number" id="valorSaida" placeholder="Valor" step="0.01" required>
+                <select id="tipoSaida" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="fixo">Fixo/Recorrente</option>
+                    <option value="variavel">Variável</option>
+                </select>
+                <input type="date" id="dataSaida" required>
+                <button type="submit" class="btn btn-saida">Salvar Saída</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Objetivos -->
+    <div id="modalObjetivo" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalObjetivo')">&times;</span>
+            <h2>🎯 Novo Objetivo</h2>
+            <form id="formObjetivo">
+                <input type="text" id="tituloObjetivo" placeholder="Título do objetivo" required>
+                <input type="number" id="valorObjetivo" placeholder="Valor meta" step="0.01" required>
+                <textarea id="descricaoObjetivo" placeholder="Descrição do objetivo"></textarea>
+                <button type="submit" class="btn btn-objetivo">Salvar Objetivo</button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // Configuração do Firebase - ALTERE AQUI SUA URL
+        const FIREBASE_URL = "https://thtato-20e86-default-rtdb.firebaseio.com"
+
         // Variáveis globais
-        let currentUser = null;
-        let relatoriosData = {};
-        let perfisData = {};
-        let relatorioSelecionado = null;
-        let todosPerfisDisponiveis = [];
-        
+        let mesAtual = ""
+        let anoAtual = ""
+        let transacoes = []
+        let objetivos = []
+
         // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            setupEventListeners();
-        });
-        
-        function checkAuth() {
-            const user = localStorage.getItem('user');
-            if (user) {
-                currentUser = JSON.parse(user);
-                showApp();
-            } else {
-                //showLogin();
-            }
-        }
-        
-        function setupEventListeners() {
-            // Filtros
-            document.querySelectorAll('.filtro-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    filtrarRelatorios(this.dataset.filtro);
-                });
-            });
-            
-            // Tabs do modal
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    this.classList.add('active');
-                    document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
-                });
-            });
-            
-            // Pesquisa
-            document.getElementById('search-input').addEventListener('input', function() {
-                filtrarRelatorios();
-            });
-        }
-        
-        function showLogin() {
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('app-container').style.display = 'none';
-            document.getElementById('user-info').style.display = 'none';
-        }
-        
-        function showApp() {
+        document.addEventListener("DOMContentLoaded", () => {
+            // Definir mês e ano atual
+            const hoje = new Date()
+            mesAtual = String(hoje.getMonth() + 1).padStart(2, "0")
+            anoAtual = String(hoje.getFullYear())
 
-            document.getElementById('app-container').style.display = 'block';
-          
-            carregarDados();
+            // Definir valores nos selects
+            document.getElementById("mesFilter").value = mesAtual
+            document.getElementById("anoFilter").value = anoAtual
+
+            // Carregar dados iniciais
+            carregarTransacoes()
+            carregarObjetivos()
+
+            // Event listeners para formulários
+            document.getElementById("formEntrada").addEventListener("submit", salvarEntrada)
+            document.getElementById("formSaida").addEventListener("submit", salvarSaida)
+            document.getElementById("formObjetivo").addEventListener("submit", salvarObjetivo)
+
+            // Definir data atual nos inputs de data
+            const dataHoje = hoje.toISOString().split("T")[0]
+            document.getElementById("dataEntrada").value = dataHoje
+            document.getElementById("dataSaida").value = dataHoje
+        })
+
+        // Funções de Modal
+        function abrirModal(modalId) {
+            document.getElementById(modalId).style.display = "block"
         }
 
-        showApp()
-        
-        function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            // Simulação de login - substitua por sua lógica real
-            getUsuario(email, password).then(user => {
-                if (user) {
-                    currentUser = user;
-                    localStorage.setItem('user', JSON.stringify(user));
-                    showApp();
-                } else {
-                    document.getElementById('login-error').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('login-error').style.display = 'none';
-                    }, 3000);
-                }
-            });
-        }
-        
-        function logout() {
-            localStorage.removeItem('user');
-            currentUser = null;
-            showLogin();
-        }
-        
-        function getUsuario(email, password) {
-            return new Promise((resolve) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://appatividades-7450d-default-rtdb.firebaseio.com/usuarios.json', true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        const usuarios = JSON.parse(xhr.responseText);
-                        for (let id in usuarios) {
-                            if (usuarios[id].email === email && usuarios[id].senha === password) {
-                                resolve(usuarios[id]);
-                                return;
-                            }
-                        }
-                        resolve(null);
-                    }
-                };
-                xhr.send();
-            });
-        }
-        
-        function carregarDados() {
-            carregarRelatorios();
-            carregarPerfis();
-        }
-        
-        function carregarRelatorios() {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://novobancodados-default-rtdb.firebaseio.com/relatorios3.json', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    relatoriosData = JSON.parse(xhr.responseText) || {};
-                    exibirRelatorios(relatoriosData);
-                    atualizarMetricas();
-                }
-            };
-            xhr.send();
-        }
-        
-        function carregarPerfis() {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://novobancodados-default-rtdb.firebaseio.com/perfis.json', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    perfisData = JSON.parse(xhr.responseText) || {};
-                    
-                    // Criar lista de todos perfis disponíveis
-                    todosPerfisDisponiveis = [];
-                    for (let id in perfisData) {
-                        todosPerfisDisponiveis.push({
-                            id: id,
-                            nome: perfisData[id].nome,
-                            descricao: perfisData[id].descricao
-                        });
-                    }
-                    
-                    // Ordenar por nome
-                    todosPerfisDisponiveis.sort((a, b) => a.nome.localeCompare(b.nome));
-                    
-                    atualizarSelectPerfis();
-                }
-            };
-            xhr.send();
-        }
-        
-        function exibirRelatorios(relatorios) {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = '';
-            
-            for (let id in relatorios) {
-                const relatorio = relatorios[id];
-                const card = criarCardRelatorio(id, relatorio);
-                container.appendChild(card);
+        function fecharModal(modalId) {
+            document.getElementById(modalId).style.display = "none"
+            // Limpar formulários
+            if (modalId === "modalEntrada") {
+                document.getElementById("formEntrada").reset()
+                const hoje = new Date().toISOString().split("T")[0]
+                document.getElementById("dataEntrada").value = hoje
+            } else if (modalId === "modalSaida") {
+                document.getElementById("formSaida").reset()
+                const hoje = new Date().toISOString().split("T")[0]
+                document.getElementById("dataSaida").value = hoje
+            } else if (modalId === "modalObjetivo") {
+                document.getElementById("formObjetivo").reset()
             }
         }
-        
-        function criarCardRelatorio(id, relatorio) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.dataset.id = id;
-            
-            // Verificar status dos perfis
-            let status = 'pendente';
-            let statusText = 'Pendente';
-            let statusClass = 'status-pendente';
-            
-            if (relatorio.perfis) {
-                const temPendente = Object.values(relatorio.perfis).some(p => p.status === 'pendente');
-                const temFaltante = Object.values(relatorio.perfis).some(p => p.status === 'faltante');
-                
-                if (!temPendente && !temFaltante) {
-                    status = 'validado';
-                    statusText = 'Validado';
-                    statusClass = 'status-validado';
-                } else if (temFaltante) {
-                    status = 'faltante';
-                    statusText = 'Faltante';
-                    statusClass = 'status-faltante';
-                }
-            }
-            
-            if (relatorio.Erro) {
-                status = 'erro';
-                statusText = 'Com erro';
-                statusClass = 'status-erro';
-            }
-            
-            card.innerHTML = `
-                <div class="card-title">${relatorio.DS_TITULO || 'Sem título'}</div>
-                <div class="card-code">Código: ${relatorio.CD_RELATORIO || 'N/A'}</div>
-                <div class="card-code">Classificação: ${relatorio.CD_CLASSIF_RELAT || 'N/A'}</div>
-                <div class="card-status ${statusClass}">${statusText}</div>
-            `;
-            
-            card.addEventListener('click', () => abrirModalPerfis(id, relatorio));
-            
-            return card;
-        }
-        
-        function filtrarRelatorios(filtro = null) {
-            if (!filtro) {
-                filtro = document.querySelector('.filtro-btn.active').dataset.filtro;
-            }
-            
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            
-            const relatoriosFiltrados = {};
-            for (let id in relatoriosData) {
-                const relatorio = relatoriosData[id];
-                let incluir = true;
-                
-                // Aplicar filtro de busca
-                if (searchTerm) {
-                    const titulo = (relatorio.DS_TITULO || '').toLowerCase();
-                    const codigo = (relatorio.CD_RELATORIO || '').toLowerCase();
-                    const classificacao = (relatorio.CD_CLASSIF_RELATORIO || '').toLowerCase();
-                    
-                    if (!titulo.includes(searchTerm) && !codigo.includes(searchTerm) && !classificacao.includes(searchTerm)) {
-                        incluir = false;
-                    }
-                }
-                
-                // Aplicar filtro de status
-                if (incluir && filtro !== 'todos') {
-                    let statusRelatorio = 'pendente';
-                    
-                    if (relatorio.perfis) {
-                        const temPendente = Object.values(relatorio.perfis).some(p => p.status === 'pendente');
-                        const temFaltante = Object.values(relatorio.perfis).some(p => p.status === 'faltante');
-                        
-                        if (!temPendente && !temFaltante) {
-                            statusRelatorio = 'validados';
-                        } else if (temFaltante) {
-                            statusRelatorio = 'faltantes';
-                        }
-                    }
-                    
-                    if (filtro !== statusRelatorio) {
-                        incluir = false;
-                    }
-                }
-                
-                if (incluir) {
-                    relatoriosFiltrados[id] = relatorio;
-                }
-            }
-            
-            exibirRelatorios(relatoriosFiltrados);
-        }
-        
-        function abrirModalPerfis(id, relatorio) {
-            relatorioSelecionado = { id, ...relatorio };
 
-            console.log(relatorioSelecionado)
-            
-            document.getElementById('modal-title').textContent = `Perfis: ${relatorio.DS_TITULO || 'Sem título'}`;
-            document.getElementById('perfis-list').innerHTML = '';
-            document.getElementById('faltantes-list').innerHTML = '';
-            
-            // Preencher perfis existentes
-            if (relatorio.perfis) {
-                for (let perfilId in relatorio.perfis) {
-                    const perfil = relatorio.perfis[perfilId];
-                    const perfilItem = criarItemPerfil(perfilId, perfil);
-                    
-                    if (perfil.status === 'faltante') {
-                        document.getElementById('faltantes-list').appendChild(perfilItem);
-                    } else {
-                        document.getElementById('perfis-list').appendChild(perfilItem);
-                    }
-                }
+        // Fechar modal clicando fora
+        window.onclick = (event) => {
+            if (event.target.classList.contains("modal")) {
+                event.target.style.display = "none"
             }
-            
-            // Atualizar select de perfis para não incluir os já adicionados
-            atualizarSelectPerfis();
-            
-            // Mostrar modal
-            document.getElementById('perfis-modal').style.display = 'flex';
         }
-        
-        function criarItemPerfil(perfilId, perfil) {
-            const item = document.createElement('div');
-            item.className = 'perfil-item';
-            item.dataset.perfilId = perfilId;
-            
-            const nomePerfil = perfisData[perfilId] ? perfisData[perfilId].nome : perfilId;
-            
-            item.innerHTML = `
-                <div class="perfil-name">${nomePerfil}</div>
-                <div class="perfil-actions">
-                    ${perfil.status === 'faltante' ? '' : `
-                        <button class="btn ${perfil.status === 'validado' ? 'btn-pendente' : 'btn-validar'}" 
-                                onclick="alternarStatusPerfil('${perfilId}', '${perfil.status === 'validado' ? 'pendente' : 'validado'}')">
-                            ${perfil.status === 'validado' ? 'Marcar Pendente' : 'Validar'}
+
+        // Função para filtrar por mês
+        function filtrarPorMes() {
+            mesAtual = document.getElementById("mesFilter").value
+            anoAtual = document.getElementById("anoFilter").value
+
+            if (!mesAtual) {
+                alert("Por favor, selecione um mês")
+                return
+            }
+
+            carregarTransacoes()
+            carregarObjetivos()
+        }
+
+        // Função para salvar entrada
+        function salvarEntrada(e) {
+            e.preventDefault()
+
+            const titulo = document.getElementById("tituloEntrada").value
+            const valor = parseFloat(document.getElementById("valorEntrada").value)
+            const tipo = document.getElementById("tipoEntrada").value
+            const data = document.getElementById("dataEntrada").value
+
+            const entrada = {
+                id: Date.now().toString(),
+                titulo: titulo,
+                valor: valor,
+                tipo: tipo,
+                categoria: "entrada",
+                data: data,
+                timestamp: new Date().toISOString(),
+            }
+
+            const dataObj = new Date(data)
+            const mes = String(dataObj.getMonth() + 1).padStart(2, "0")
+            const ano = String(dataObj.getFullYear())
+
+            const url = `${FIREBASE_URL}/financas/${ano}/${mes}/transacoes/${entrada.id}.json`
+
+            fetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(entrada),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Entrada salva:", data)
+                    fecharModal("modalEntrada")
+                    carregarTransacoes()
+                })
+                .catch((error) => {
+                    console.error("Erro ao salvar entrada:", error)
+                    alert("Erro ao salvar entrada")
+                })
+        }
+
+        // Função para salvar saída
+        function salvarSaida(e) {
+            e.preventDefault()
+
+            const titulo = document.getElementById("tituloSaida").value
+            const valor = parseFloat(document.getElementById("valorSaida").value)
+            const tipo = document.getElementById("tipoSaida").value
+            const data = document.getElementById("dataSaida").value
+
+            const saida = {
+                id: Date.now().toString(),
+                titulo: titulo,
+                valor: valor,
+                tipo: tipo,
+                categoria: "saida",
+                data: data,
+                timestamp: new Date().toISOString(),
+            }
+
+            const dataObj = new Date(data)
+            const mes = String(dataObj.getMonth() + 1).padStart(2, "0")
+            const ano = String(dataObj.getFullYear())
+
+            const url = `${FIREBASE_URL}/financas/${ano}/${mes}/transacoes/${saida.id}.json`
+
+            fetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(saida),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Saída salva:", data)
+                    fecharModal("modalSaida")
+                    carregarTransacoes()
+                })
+                .catch((error) => {
+                    console.error("Erro ao salvar saída:", error)
+                    alert("Erro ao salvar saída")
+                })
+        }
+
+        // Função para salvar objetivo
+        function salvarObjetivo(e) {
+            e.preventDefault()
+
+            const titulo = document.getElementById("tituloObjetivo").value
+            const valor = parseFloat(document.getElementById("valorObjetivo").value)
+            const descricao = document.getElementById("descricaoObjetivo").value
+
+            const objetivo = {
+                id: Date.now().toString(),
+                titulo: titulo,
+                valor: valor,
+                descricao: descricao,
+                timestamp: new Date().toISOString(),
+            }
+
+            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/objetivos/${objetivo.id}.json`
+
+            fetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(objetivo),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Objetivo salvo:", data)
+                    fecharModal("modalObjetivo")
+                    carregarObjetivos()
+                })
+                .catch((error) => {
+                    console.error("Erro ao salvar objetivo:", error)
+                    alert("Erro ao salvar objetivo")
+                })
+        }
+
+        // Função para carregar transações
+        function carregarTransacoes() {
+            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/transacoes.json`
+
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    transacoes = []
+                    if (data) {
+                        transacoes = Object.values(data)
+                    }
+                    atualizarTabela()
+                    calcularResumo()
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar transações:", error)
+                    transacoes = []
+                    atualizarTabela()
+                    calcularResumo()
+                })
+        }
+
+        // Função para carregar objetivos
+        function carregarObjetivos() {
+            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/objetivos.json`
+
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    objetivos = []
+                    if (data) {
+                        objetivos = Object.values(data)
+                    }
+                    atualizarObjetivos()
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar objetivos:", error)
+                    objetivos = []
+                    atualizarObjetivos()
+                })
+        }
+
+        // Função para atualizar tabela
+        function atualizarTabela() {
+            const corpoTabela = document.getElementById("corpoTabela")
+            const tituloMes = document.getElementById("tituloMes")
+
+            // Atualizar título
+            const nomesMeses = [
+                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+            ]
+            const nomeMes = nomesMeses[parseInt(mesAtual) - 1]
+            tituloMes.textContent = `Transações de ${nomeMes} ${anoAtual}`
+
+            if (transacoes.length === 0) {
+                corpoTabela.innerHTML = '<tr><td colspan="6" class="sem-dados">Nenhuma transação encontrada</td></tr>'
+                return
+            }
+
+            // Ordenar por data (mais recente primeiro)
+            transacoes.sort((a, b) => new Date(b.data) - new Date(a.data))
+
+            corpoTabela.innerHTML = ""
+            transacoes.forEach((transacao) => {
+                const linha = document.createElement("tr")
+
+                const dataFormatada = new Date(transacao.data).toLocaleDateString("pt-BR")
+                const valorFormatado = transacao.valor.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                })
+
+                const classeCategoria = transacao.categoria === "entrada" ? "entrada" : "saida"
+                const iconeCategoria = transacao.categoria === "entrada" ? "💚" : "❌"
+
+                linha.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>${transacao.titulo}</td>
+                    <td>${transacao.tipo}</td>
+                    <td class="${classeCategoria}">${iconeCategoria} ${transacao.categoria}</td>
+                    <td class="${classeCategoria}">${valorFormatado}</td>
+                    <td>
+                        <button onclick="excluirTransacao('${transacao.id}')" class="btn-delete">
+                            🗑️ Excluir
                         </button>
-                    `}
-                    <button class="btn btn-remover" onclick="removerPerfil('${perfilId}')">Remover</button>
-                </div>
-            `;
-            
-            if (perfil.status === 'faltante') {
-                item.style.backgroundColor = '#fff3cd';
-            } else if (perfil.status === 'validado') {
-                item.style.backgroundColor = '#d4edda';
+                    </td>
+                `
+
+                corpoTabela.appendChild(linha)
+            })
+        }
+
+        // Função para calcular resumo
+        function calcularResumo() {
+            let totalEntradas = 0
+            let totalSaidas = 0
+
+            transacoes.forEach((transacao) => {
+                if (transacao.categoria === "entrada") {
+                    totalEntradas += transacao.valor
+                } else {
+                    totalSaidas += transacao.valor
+                }
+            })
+
+            const saldoFinal = totalEntradas - totalSaidas
+
+            document.getElementById("totalEntradas").textContent = totalEntradas.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+            })
+
+            document.getElementById("totalSaidas").textContent = totalSaidas.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+            })
+
+            document.getElementById("saldoFinal").textContent = saldoFinal.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+            })
+
+            // Alterar cor do saldo baseado no valor
+            const elementoSaldo = document.getElementById("saldoFinal")
+            if (saldoFinal > 0) {
+                elementoSaldo.style.color = "#27ae60"
+            } else if (saldoFinal < 0) {
+                elementoSaldo.style.color = "#e74c3c"
+            } else {
+                elementoSaldo.style.color = "#3498db"
             }
-            
-            return item;
         }
-        
-        function atualizarSelectPerfis() {
-            const select = document.getElementById('perfil-select');
-            select.innerHTML = '<option value="">Selecione um perfil</option>';
-            
-            if (!relatorioSelecionado) return;
-            
-            // Filtrar perfis já adicionados ao relatório
-            const perfisAdicionados = relatorioSelecionado.perfis ? Object.keys(relatorioSelecionado.perfis) : [];
-            
-            todosPerfisDisponiveis.forEach(perfil => {
-                if (!perfisAdicionados.includes(perfil.id)) {
-                    const option = document.createElement('option');
-                    option.value = perfil.id;
-                    option.textContent = perfil.nome;
-                    select.appendChild(option);
-                }
-            });
-        }
-        
-        function adicionarPerfil() {
-            const select = document.getElementById('perfil-select');
-            const perfilId = select.value;
-            
-            if (!perfilId) return;
-            
-            // Verificar se o perfil já existe no relatório
-            if (relatorioSelecionado.perfis && relatorioSelecionado.perfis[perfilId]) {
-                alert('Este perfil já foi adicionado a este relatório');
-                return;
+
+        // Função para atualizar objetivos
+        function atualizarObjetivos() {
+            const listaObjetivos = document.getElementById("listaObjetivos")
+
+            if (objetivos.length === 0) {
+                listaObjetivos.innerHTML = '<p class="sem-dados">Nenhum objetivo cadastrado</p>'
+                return
             }
-            
-            // Adicionar perfil ao relatório
-            const xhr = new XMLHttpRequest();
-            const url = `https://novobancodados-default-rtdb.firebaseio.com/relatorios3/${relatorioSelecionado.id}/perfis/${perfilId}.json`;
-            
-            xhr.open('PUT', url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Atualizar localmente
-                    if (!relatorioSelecionado.perfis) {
-                        relatorioSelecionado.perfis = {};
-                    }
-                    relatorioSelecionado.perfis[perfilId] = { status: 'pendente' };
-                    
-                    // Atualizar exibição
-                    const perfilItem = criarItemPerfil(perfilId, { status: 'pendente' });
-                    document.getElementById('perfis-list').appendChild(perfilItem);
-                    
-                    // Atualizar select
-                    atualizarSelectPerfis();
-                    
-                    // Atualizar card
-                    atualizarCardRelatorio(relatorioSelecionado.id);
-                    
-                    // Atualizar métricas
-                    atualizarMetricas();
-                }
-            };
-            
-            xhr.send(JSON.stringify({ status: 'pendente' }));
+
+            listaObjetivos.innerHTML = ""
+            objetivos.forEach((objetivo) => {
+                const div = document.createElement("div")
+                div.className = "objetivo-item"
+
+                const valorFormatado = objetivo.valor.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                })
+
+                div.innerHTML = `
+                    <h4>${objetivo.titulo}</h4>
+                    <div class="valor-meta">Meta: ${valorFormatado}</div>
+                    <p>${objetivo.descricao}</p>
+                    <button onclick="excluirObjetivo('${objetivo.id}')" class="btn-delete" style="margin-top: 10px;">
+                        🗑️ Excluir
+                    </button>
+                `
+
+                listaObjetivos.appendChild(div)
+            })
         }
-        
-        function adicionarPerfilFaltante() {
-            const input = document.getElementById('novo-perfil-input');
-            const nomePerfil = input.value.trim();
-            
-            if (!nomePerfil) return;
-            
-            // Criar ID único simples (em produção, use algo mais robusto)
-            const perfilId = nomePerfil.toLowerCase().replace(/\s+/g, '-');
-            
-            // Verificar se já existe
-            if (relatorioSelecionado.perfis && relatorioSelecionado.perfis[perfilId]) {
-                alert('Este perfil já foi adicionado a este relatório');
-                return;
+
+        // Função para excluir transação
+        function excluirTransacao(id) {
+            if (!confirm("Tem certeza que deseja excluir esta transação?")) {
+                return
             }
-            
-            // Adicionar perfil faltante ao relatório
-            const xhr = new XMLHttpRequest();
-            const url = `https://novobancodados-default-rtdb.firebaseio.com/relatorios3/${relatorioSelecionado.id}/perfis/${perfilId}.json`;
-            
-            xhr.open('PUT', url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Atualizar localmente
-                    if (!relatorioSelecionado.perfis) {
-                        relatorioSelecionado.perfis = {};
+
+            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/transacoes/${id}.json`
+
+            fetch(url, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        console.log("Transação excluída")
+                        carregarTransacoes()
                     }
-                    relatorioSelecionado.perfis[perfilId] = { status: 'faltante', nome: nomePerfil };
-                    
-                    // Atualizar exibição
-                    const perfilItem = criarItemPerfil(perfilId, { status: 'faltante', nome: nomePerfil });
-                    document.getElementById('faltantes-list').appendChild(perfilItem);
-                    
-                    // Limpar input
-                    input.value = '';
-                    
-                    // Atualizar card
-                    atualizarCardRelatorio(relatorioSelecionado.id);
-                    
-                    // Atualizar métricas
-                    atualizarMetricas();
-                }
-            };
-            
-            xhr.send(JSON.stringify({ status: 'faltante', nome: nomePerfil }));
+                })
+                .catch((error) => {
+                    console.error("Erro ao excluir transação:", error)
+                    alert("Erro ao excluir transação")
+                })
         }
-        
-        function alternarStatusPerfil(perfilId, novoStatus) {
-            const xhr = new XMLHttpRequest();
-            const url = `https://novobancodados-default-rtdb.firebaseio.com/relatorios3/${relatorioSelecionado.id}/perfis/${perfilId}/status.json`;
-            
-            xhr.open('PUT', url, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Atualizar localmente
-                    relatorioSelecionado.perfis[perfilId].status = novoStatus;
-                    
-                    // Atualizar exibição
-                    const listContainer = novoStatus === 'faltante' ? 'faltantes-list' : 'perfis-list';
-                    const perfilItem = criarItemPerfil(perfilId, { status: novoStatus });
-                    
-                    // Remover do container atual e adicionar no novo se necessário
-                    const oldItem = document.querySelector(`.perfil-item[data-perfil-id="${perfilId}"]`);
-                    if (oldItem) oldItem.remove();
-                    
-                    document.getElementById(listContainer).appendChild(perfilItem);
-                    
-                    // Atualizar card
-                    atualizarCardRelatorio(relatorioSelecionado.id);
-                    
-                    // Atualizar métricas
-                    atualizarMetricas();
-                }
-            };
-            
-            xhr.send(JSON.stringify(novoStatus));
-        }
-        
-        function removerPerfil(perfilId) {
-            if (!confirm('Tem certeza que deseja remover este perfil?')) return;
-            
-            const xhr = new XMLHttpRequest();
-            const url = `https://novobancodados-default-rtdb.firebaseio.com/relatorios3/${relatorioSelecionado.id}/perfis/${perfilId}.json`;
-            
-            xhr.open('DELETE', url, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // Atualizar localmente
-                    delete relatorioSelecionado.perfis[perfilId];
-                    
-                    // Remover da exibição
-                    const item = document.querySelector(`.perfil-item[data-perfil-id="${perfilId}"]`);
-                    if (item) item.remove();
-                    
-                    // Atualizar select se não for um perfil faltante
-                    if (perfisData[perfilId]) {
-                        atualizarSelectPerfis();
-                    }
-                    
-                    // Atualizar card
-                    atualizarCardRelatorio(relatorioSelecionado.id);
-                    
-                    // Atualizar métricas
-                    atualizarMetricas();
-                }
-            };
-            
-            xhr.send();
-        }
-        
-        function atualizarCardRelatorio(relatorioId) {
-            const card = document.querySelector(`.card[data-id="${relatorioId}"]`);
-            if (!card) return;
-            
-            const relatorio = relatoriosData[relatorioId];
-            const novoCard = criarCardRelatorio(relatorioId, relatorio);
-            
-            // Substituir o card antigo pelo novo
-            card.parentNode.replaceChild(novoCard, card);
-        }
-        
-        function atualizarMetricas() {
-            let totalRelatorios = 0;
-            let totalPerfis = 0;
-            let perfisValidados = 0;
-            let perfisPendentes = 0;
-            let perfisFaltantes = 0;
-            
-            // Contar relatórios
-            totalRelatorios = Object.keys(relatoriosData).length;
-            
-            // Contar perfis
-            for (let relatorioId in relatoriosData) {
-                const relatorio = relatoriosData[relatorioId];
-                
-                if (relatorio.perfis) {
-                    for (let perfilId in relatorio.perfis) {
-                        totalPerfis++;
-                        
-                        const status = relatorio.perfis[perfilId].status;
-                        if (status === 'validado') {
-                            perfisValidados++;
-                        } else if (status === 'pendente') {
-                            perfisPendentes++;
-                        } else if (status === 'faltante') {
-                            perfisFaltantes++;
-                        }
-                    }
-                }
+
+        // Função para excluir objetivo
+        function excluirObjetivo(id) {
+            if (!confirm("Tem certeza que deseja excluir este objetivo?")) {
+                return
             }
-            
-            // Atualizar UI
-            document.getElementById('total-relatorios').textContent = totalRelatorios;
-            document.getElementById('total-perfis').textContent = totalPerfis;
-            document.getElementById('perfis-validados').textContent = perfisValidados;
-            document.getElementById('perfis-pendentes').textContent = perfisPendentes;
-            document.getElementById('perfis-faltantes').textContent = perfisFaltantes;
-        }
-        
-        function closeModal() {
-            document.getElementById('perfis-modal').style.display = 'none';
-            relatorioSelecionado = null;
+
+            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/objetivos/${id}.json`
+
+            fetch(url, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        console.log("Objetivo excluído")
+                        carregarObjetivos()
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao excluir objetivo:", error)
+                    alert("Erro ao excluir objetivo")
+                })
         }
     </script>
 </body>
 </html>
+    
