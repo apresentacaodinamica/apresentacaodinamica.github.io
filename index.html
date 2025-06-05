@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Gastos Pessoais</title>
     <style>
@@ -258,6 +258,32 @@
             line-height: 1.5;
         }
 
+        /* Status Styles */
+        .status-pago {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pendente {
+            background: #f39c12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -349,10 +375,29 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background 0.3s ease;
+            margin-right: 5px;
         }
 
         .btn-delete:hover {
             background: #c0392b;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            cursor: pointer;
+            font-weight: 500;
         }
 
         /* Responsive Design */
@@ -388,7 +433,7 @@
             }
 
             table {
-                min-width: 600px;
+                min-width: 700px;
             }
 
             .modal-content {
@@ -453,7 +498,7 @@
 
         <!-- Tabela de Transações -->
         <div class="tabela-container">
-            <h2 id="tituloMes">Transações do Mês</h2>
+            <h2 id="tituloMes">Transações</h2>
             <table id="tabelaTransacoes">
                 <thead>
                     <tr>
@@ -462,12 +507,13 @@
                         <th>Tipo</th>
                         <th>Categoria</th>
                         <th>Valor</th>
+                        <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="corpoTabela">
                     <tr>
-                        <td colspan="6" class="sem-dados">Nenhuma transação encontrada</td>
+                        <td colspan="7" class="sem-dados">Nenhuma transação encontrada</td>
                     </tr>
                 </tbody>
             </table>
@@ -485,7 +531,7 @@
     <!-- Modal Nova Entrada -->
     <div id="modalEntrada" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModal('modalEntrada')">&times;</span>
+            <span class="close" onclick="fecharModal('modalEntrada')">×</span>
             <h2>💚 Nova Entrada</h2>
             <form id="formEntrada">
                 <input type="text" id="tituloEntrada" placeholder="Título da entrada" required>
@@ -496,6 +542,10 @@
                     <option value="variavel">Variável</option>
                 </select>
                 <input type="date" id="dataEntrada" required>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="statusEntrada" checked>
+                    <label for="statusEntrada">Marcar como pago</label>
+                </div>
                 <button type="submit" class="btn btn-entrada">Salvar Entrada</button>
             </form>
         </div>
@@ -504,7 +554,7 @@
     <!-- Modal Nova Saída -->
     <div id="modalSaida" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModal('modalSaida')">&times;</span>
+            <span class="close" onclick="fecharModal('modalSaida')">×</span>
             <h2>❌ Nova Saída</h2>
             <form id="formSaida">
                 <input type="text" id="tituloSaida" placeholder="Título da saída" required>
@@ -515,6 +565,10 @@
                     <option value="variavel">Variável</option>
                 </select>
                 <input type="date" id="dataSaida" required>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="statusSaida">
+                    <label for="statusSaida">Marcar como pago</label>
+                </div>
                 <button type="submit" class="btn btn-saida">Salvar Saída</button>
             </form>
         </div>
@@ -523,7 +577,7 @@
     <!-- Modal Objetivos -->
     <div id="modalObjetivo" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModal('modalObjetivo')">&times;</span>
+            <span class="close" onclick="fecharModal('modalObjetivo')">×</span>
             <h2>🎯 Novo Objetivo</h2>
             <form id="formObjetivo">
                 <input type="text" id="tituloObjetivo" placeholder="Título do objetivo" required>
@@ -582,10 +636,12 @@
                 document.getElementById("formEntrada").reset()
                 const hoje = new Date().toISOString().split("T")[0]
                 document.getElementById("dataEntrada").value = hoje
+                document.getElementById("statusEntrada").checked = true
             } else if (modalId === "modalSaida") {
                 document.getElementById("formSaida").reset()
                 const hoje = new Date().toISOString().split("T")[0]
                 document.getElementById("dataSaida").value = hoje
+                document.getElementById("statusSaida").checked = false
             } else if (modalId === "modalObjetivo") {
                 document.getElementById("formObjetivo").reset()
             }
@@ -612,6 +668,35 @@
             carregarObjetivos()
         }
 
+        // Função para alternar status de pagamento
+        function alternarStatus(id) {
+            const transacao = transacoes.find(t => t.id === id)
+            if (!transacao) return
+
+            transacao.pago = !transacao.pago
+
+            const dataObj = new Date(transacao.data)
+            const mes = String(dataObj.getMonth() + 1).padStart(2, "0")
+            const ano = String(dataObj.getFullYear())
+
+            const url = `${FIREBASE_URL}/financas/${ano}/${mes}/transacoes/${id}.json`
+
+            fetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(transacao),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Status atualizado:", data)
+                    atualizarTabela()
+                })
+                .catch((error) => {
+                    console.error("Erro ao atualizar status:", error)
+                    alert("Erro ao atualizar status")
+                })
+        }
+
         // Função para salvar entrada
         function salvarEntrada(e) {
             e.preventDefault()
@@ -620,6 +705,7 @@
             const valor = parseFloat(document.getElementById("valorEntrada").value)
             const tipo = document.getElementById("tipoEntrada").value
             const data = document.getElementById("dataEntrada").value
+            const pago = document.getElementById("statusEntrada").checked
 
             const entrada = {
                 id: Date.now().toString(),
@@ -628,6 +714,7 @@
                 tipo: tipo,
                 categoria: "entrada",
                 data: data,
+                pago: pago,
                 timestamp: new Date().toISOString(),
             }
 
@@ -662,6 +749,7 @@
             const valor = parseFloat(document.getElementById("valorSaida").value)
             const tipo = document.getElementById("tipoSaida").value
             const data = document.getElementById("dataSaida").value
+            const pago = document.getElementById("statusSaida").checked
 
             const saida = {
                 id: Date.now().toString(),
@@ -670,6 +758,7 @@
                 tipo: tipo,
                 categoria: "saida",
                 data: data,
+                pago: pago,
                 timestamp: new Date().toISOString(),
             }
 
@@ -740,7 +829,10 @@
                 .then((data) => {
                     transacoes = []
                     if (data) {
-                        transacoes = Object.values(data)
+                        transacoes = Object.values(data).map(transacao => ({
+                            ...transacao,
+                            pago: transacao.pago !== undefined ? transacao.pago : false
+                        }))
                     }
                     atualizarTabela()
                     calcularResumo()
@@ -787,7 +879,7 @@
             tituloMes.textContent = `Transações de ${nomeMes} ${anoAtual}`
 
             if (transacoes.length === 0) {
-                corpoTabela.innerHTML = '<tr><td colspan="6" class="sem-dados">Nenhuma transação encontrada</td></tr>'
+                corpoTabela.innerHTML = '<tr><td colspan="7" class="sem-dados">Nenhuma transação encontrada</td></tr>'
                 return
             }
 
@@ -807,12 +899,20 @@
                 const classeCategoria = transacao.categoria === "entrada" ? "entrada" : "saida"
                 const iconeCategoria = transacao.categoria === "entrada" ? "💚" : "❌"
 
+                const statusClass = transacao.pago ? "status-pago" : "status-pendente"
+                const statusText = transacao.pago ? "Pago" : "Pendente"
+
                 linha.innerHTML = `
                     <td>${dataFormatada}</td>
                     <td>${transacao.titulo}</td>
                     <td>${transacao.tipo}</td>
                     <td class="${classeCategoria}">${iconeCategoria} ${transacao.categoria}</td>
                     <td class="${classeCategoria}">${valorFormatado}</td>
+                    <td>
+                        <button onclick="alternarStatus('${transacao.id}')" class="status-toggle">
+                            <span class="${statusClass}">${statusText}</span>
+                        </button>
+                    </td>
                     <td>
                         <button onclick="excluirTransacao('${transacao.id}')" class="btn-delete">
                             🗑️ Excluir
@@ -903,7 +1003,14 @@
                 return
             }
 
-            const url = `${FIREBASE_URL}/financas/${anoAtual}/${mesAtual}/transacoes/${id}.json`
+            const transacao = transacoes.find(t => t.id === id)
+            if (!transacao) return
+
+            const dataObj = new Date(transacao.data)
+            const mes = String(dataObj.getMonth() + 1).padStart(2, "0")
+            const ano = String(dataObj.getFullYear())
+
+            const url = `${FIREBASE_URL}/financas/${ano}/${mes}/transacoes/${id}.json`
 
             fetch(url, {
                 method: "DELETE",
@@ -945,4 +1052,3 @@
     </script>
 </body>
 </html>
-    
