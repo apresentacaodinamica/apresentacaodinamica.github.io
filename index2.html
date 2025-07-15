@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importador de XLSX para Firebase</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area.highlight {
+            border-color: #667eea;
+            background-color: #e9f0ff;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            display: none;
+        }
+        
+        .log {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .success {
+            color: #28a745;
+        }
+        
+        .error {
+            color: #dc3545;
+        }
+        
+        .warning {
+            color: #ffc107;
+        }
+        
+        .info {
+            color: #17a2b8;
+        }
+        
+        .columns-preview {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .columns-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .column-item {
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            word-break: break-word;
+        }
+        
+        .required {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Importador de XLSX para Firebase - Briefing Logomarca</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>Arraste e solte seu arquivo XLSX aqui ou clique para selecionar</p>
+            <p style="font-size: 14px; color: #666; margin-top: 10px;">Formatos aceitos: .xlsx, .xls</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls">
+            <button class="btn" id="selectFileBtn">Selecionar Arquivo Excel</button>
+        </div>
+        
+        <div class="stats" id="statsContainer" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalRecords">0</div>
+                <div class="stat-label">Registros Encontrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="validRecords">0</div>
+                <div class="stat-label">Registros Válidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="columnsFound">0</div>
+                <div class="stat-label">Colunas Detectadas</div>
+            </div>
+        </div>
+        
+        <div class="columns-preview" id="columnsPreview">
+            <h3>Colunas detectadas no arquivo Excel:</h3>
+            <div class="columns-list" id="columnsList"></div>
+        </div>
+        
+        <div class="progress-container" id="progressContainer">
+            <h3>Progresso da Importação:</h3>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="status" id="statusText"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn" id="importBtn" disabled>Importar para Firebase</button>
+            <button class="btn btn-danger" id="clearBtn">Limpar Firebase</button>
+        </div>
+        
+        <div class="log" id="logContainer">
+            <div class="log-entry info">Pronto para importar um arquivo Excel (.xlsx)...</div>
+        </div>
+    </div>
+
+    <!-- SheetJS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
+        
+        // Elementos da interface
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectFileBtn = document.getElementById('selectFileBtn');
+        const importBtn = document.getElementById('importBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const statusText = document.getElementById('statusText');
+        const logContainer = document.getElementById('logContainer');
+        const columnsPreview = document.getElementById('columnsPreview');
+        const columnsList = document.getElementById('columnsList');
+        const statsContainer = document.getElementById('statsContainer');
+        const totalRecords = document.getElementById('totalRecords');
+        const validRecords = document.getElementById('validRecords');
+        const columnsFound = document.getElementById('columnsFound');
+        
+        // Variáveis globais
+        let excelData = null;
+        let excelColumns = [];
+        
+        // Colunas obrigatórias do formulário de briefing
+        let requiredColumns = [
+            "Carimbo de data/hora",
+            "Seu nome:",
+            "CPF:",
+            "Cidade:",
+            "Qual o seu número de telefone (com DDD)?",
+            "Qual seu e-mail?",
+            "Sua empresa já tem um nome? Se sim, qual?",
+            "Já possui um nome fantasia a ser usado?",
+            "Qual o ramo da sua empresa?",
+            "Alguma sugestão de cor ou cores para sua logomarca?",
+            "Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)",
+            "O nome ou a marca da empresa tem alguma história?",
+            "Você tem alguma mensagem que deseja transmitir com sua marca?",
+            "Assinale os públicos que sua empresa atinge/deseja atingir:",
+            "Qual o meio de vendas de seu produto/serviço?",
+            "Você pretende criar site ou redes sociais para seu negócio?"
+        ];
+        
+        // Event Listeners
+        selectFileBtn.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('highlight');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('highlight');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('highlight');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+        
+        fileInput.addEventListener('change', handleFileSelect);
+        importBtn.addEventListener('click', importToFirebase);
+        clearBtn.addEventListener('click', clearFirebase);
+        
+        // Função para lidar com a seleção de arquivo
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                addLog('Nenhum arquivo selecionado.', 'error');
+                return;
+            }
+            
+            const validExtensions = ['.xlsx', '.xls'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            
+            if (!validExtensions.includes(fileExtension)) {
+                addLog('Por favor, selecione um arquivo Excel (.xlsx ou .xls).', 'error');
+                return;
+            }
+            
+            addLog(`Arquivo selecionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    parseExcel(data);
+                } catch (error) {
+                    addLog(`Erro ao ler o arquivo: ${error.message}`, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                addLog('Erro ao ler o arquivo Excel.', 'error');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Função para analisar o arquivo Excel
+        function parseExcel(data) {
+            addLog('Analisando arquivo Excel...', 'info');
+            
+            try {
+                // Ler o arquivo Excel
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Pegar a primeira planilha
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                
+                addLog(`Planilha encontrada: "${sheetName}"`, 'info');
+                
+                // Converter para JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                    header: 1,
+                    defval: '',
+                    raw: false
+                });
+                
+                if (jsonData.length < 2) {
+                    addLog('O arquivo Excel está vazio ou não tem dados suficientes.', 'error');
+                    return;
+                }
+                
+                // Primeira linha são os cabeçalhos
+                const headers = jsonData[0].filter(header => header && header.trim() !== '');
+                excelColumns = headers;
+                
+                addLog(`Colunas encontradas: ${headers.length}`, 'info');
+                
+                // Mostrar colunas detectadas
+                showColumnsPreview(headers);
+                
+                // Verificar colunas necessárias
+                const missingColumns = requiredColumns.filter(col => 
+                    !headers.some(header => header.trim() === col.trim())
+                );
+                
+                if (missingColumns.length > 0) {
+                    addLog(`AVISO: Algumas colunas necessárias não foram encontradas:`, 'warning');
+                    missingColumns.forEach(col => addLog(`  - "${col}"`, 'warning'));
+                    addLog('A importação pode não funcionar corretamente.', 'warning');
+                } else {
+                    addLog('Todas as colunas necessárias foram encontradas no Excel.', 'success');
+                }
+                
+                // Processar dados (pular a primeira linha que são os cabeçalhos)
+                excelData = [];
+                
+                for (let i = 1; i < jsonData.length; i++) {
+                    const values = jsonData[i];
+                    const row = {};
+                    
+                    // Mapear valores para cabeçalhos
+                    for (let j = 0; j < headers.length; j++) {
+                        const value = j < values.length ? values[j] : '';
+                        row[headers[j]] = value;
+                    }
+                    
+                    // Só adicionar linhas que não estão completamente vazias
+                    const hasData = Object.values(row).some(value => 
+                        value && value.toString().trim() !== ''
+                    );
+                    
+                    if (hasData) {
+                        excelData.push(row);
+                    }
+                }
+                
+                // Atualizar estatísticas
+                updateStats(excelData.length, excelData.length, headers.length);
+                
+                addLog(`Excel analisado com sucesso. ${excelData.length} registros encontrados.`, 'success');
+                
+                // Debug: Mostrar primeiro registro
+                if (excelData.length > 0) {
+                    addLog('Exemplo do primeiro registro:', 'info');
+                    Object.entries(excelData[0]).forEach(([key, value]) => {
+                        if (value && value.toString().trim() !== '') {
+                            addLog(`  "${key}": "${value}"`, 'info');
+                        }
+                    });
+                }
+                
+                importBtn.disabled = false;
+                
+            } catch (error) {
+                addLog(`Erro ao processar arquivo Excel: ${error.message}`, 'error');
+            }
+        }
+        
+        // Função para atualizar estatísticas
+        function updateStats(total, valid, columns) {
+            totalRecords.textContent = total;
+            validRecords.textContent = valid;
+            columnsFound.textContent = columns;
+            statsContainer.style.display = 'grid';
+        }
+        
+        // Função para mostrar preview das colunas
+        function showColumnsPreview(headers) {
+            columnsList.innerHTML = '';
+            
+            headers.forEach(header => {
+                const isRequired = requiredColumns.some(req => req.trim() === header.trim());
+                const columnItem = document.createElement('div');
+                columnItem.className = 'column-item';
+                
+                if (isRequired) {
+                    columnItem.innerHTML = `${header} <span class="required">*</span>`;
+                } else {
+                    columnItem.textContent = header;
+                }
+                
+                columnsList.appendChild(columnItem);
+            });
+            
+            columnsPreview.style.display = 'block';
+        }
+        
+        // Função para limpar valores
+        function cleanValue(value) {
+            if (!value || value === null || value === undefined) return "N/A";
+            
+            let cleaned = String(value).trim();
+            
+            // Verificar se é vazio ou valores inválidos
+            if (cleaned === '' || 
+                cleaned.toLowerCase() === 'nan' || 
+                cleaned.toLowerCase() === 'null' || 
+                cleaned === '""' ||
+                cleaned === 'undefined') {
+                return "N/A";
+            }
+            
+            return cleaned || "N/A";
+        }
+        
+        // Função para encontrar coluna por nome (busca flexível)
+        function findColumnValue(row, columnName) {
+            // Busca exata primeiro
+            if (row[columnName]) {
+                return row[columnName];
+            }
+            
+            // Busca flexível (ignora espaços e case)
+            const normalizedTarget = columnName.toLowerCase().trim();
+            
+            for (const [key, value] of Object.entries(row)) {
+                if (key.toLowerCase().trim() === normalizedTarget) {
+                    return value;
+                }
+            }
+            
+            return null;
+        }
+        
+        // Função para importar para o Firebase
+        async function importToFirebase() {
+            if (!excelData || excelData.length === 0) {
+                addLog('Nenhum dado para importar.', 'error');
+                return;
+            }
+
+            progressContainer.style.display = 'block';
+            importBtn.disabled = true;
+            clearBtn.disabled = true;
+
+            const totalRecords = excelData.length;
+            let importedRecords = 0;
+            let errorRecords = 0;
+
+            addLog(`Iniciando importação de ${totalRecords} registros...`, 'info');
+
+            // Processar cada registro
+            for (let i = 0; i < excelData.length; i++) {
+                const row = excelData[i];
+                
+                try {
+                    // Obter a data atual formatada
+                    const dataAtual = new Date();
+                    const dia = String(dataAtual.getDate()).padStart(2, '0');
+                    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+                    const ano = dataAtual.getFullYear();
+                    const dataFormatada = `${dia}/${mes}/${ano}`;
+                    
+                    // Criar ID único baseado no timestamp e índice
+                    const timestamp = Date.now();
+                    const id_unico = `${timestamp}_${i}`;
+                    
+                    // Mapeamento completo dos campos do briefing
+                    const nome = cleanValue(findColumnValue(row, "Seu nome:"));
+                    const cpf = cleanValue(findColumnValue(row, "CPF:"));
+                    const cidade = cleanValue(findColumnValue(row, "Cidade:"));
+                    const telefone = cleanValue(findColumnValue(row, "Qual o seu número de telefone (com DDD)?"));
+                    const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
+                    const empresaNome = cleanValue(findColumnValue(row, "Sua empresa já tem um nome? Se sim, qual?"));
+                    const nomeFantasia = cleanValue(findColumnValue(row, "Já possui um nome fantasia a ser usado?"));
+                    const ramo = cleanValue(findColumnValue(row, "Qual o ramo da sua empresa?"));
+                    const cor = cleanValue(findColumnValue(row, "Alguma sugestão de cor ou cores para sua logomarca?"));
+                    const caracteristicasEvitar = cleanValue(findColumnValue(row, "Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)"));
+                    const historia = cleanValue(findColumnValue(row, "O nome ou a marca da empresa tem alguma história?"));
+                    const mensagem = cleanValue(findColumnValue(row, "Você tem alguma mensagem que deseja transmitir com sua marca?"));
+                    const publicoAlvo = cleanValue(findColumnValue(row, "Assinale os públicos que sua empresa atinge/deseja atingir:"));
+                    const meioVendas = cleanValue(findColumnValue(row, "Qual o meio de vendas de seu produto/serviço?"));
+                    const redesSociais = cleanValue(findColumnValue(row, "Você pretende criar site ou redes sociais para seu negócio?"));
+                    const timestampOriginal = cleanValue(findColumnValue(row, "Carimbo de data/hora"));
+
+                    // Criar o objeto de dados completo para o Firebase
+                    const cliente_data = {
+                        "id": id_unico,
+                        "nome": nome,
+                        "cpf": cpf,
+                        "cidade": cidade,
+                        "telefone": telefone,
+                        "email": email,
+                        "empresaNome": empresaNome,
+                        "nomeFantasia": nomeFantasia,
+                        "ramo": ramo,
+                        "cor": cor,
+                        "caracteristicasEvitar": caracteristicasEvitar,
+                        "historia": historia,
+                        "mensagem": mensagem,
+                        "publicoAlvo": publicoAlvo,
+                        "meioVendas": meioVendas,
+                        "redesSociais": redesSociais,
+                        "data": dataFormatada,
+                        "feito": false,
+                        "timestampOriginal": timestampOriginal,
+                        "timestampImportacao": new Date().toISOString()
+                    };
+
+                    // Enviar para o Firebase usando PATCH
+                    const response = await fetch(FIREBASE_URL, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ [`cliente_${cliente_data.id}`]: cliente_data })
+                    });
+                    
+                    if (response.ok) {
+                        importedRecords++;
+                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Importado com sucesso`, 'success');
+                    } else {
+                        errorRecords++;
+                        const errorText = await response.text();
+                        addLog(`❌ Erro ao importar registro ${i+1}: Status ${response.status} - ${errorText}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    errorRecords++;
+                    addLog(`❌ Erro ao processar registro ${i+1}: ${error.message}`, 'error');
+                }
+                
+                // Atualizar barra de progresso
+                const progress = Math.round(((i + 1) / totalRecords) * 100);
+                progressBar.style.width = `${progress}%`;
+                statusText.textContent = `Processando... ${i + 1}/${totalRecords} (${progress}%)`;
+                statusText.style.display = 'block';
+                
+                // Pequena pausa para não sobrecarregar o Firebase
+                if (i % 10 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+            
+            // Resumo final
+            addLog(`\n🎉 Importação concluída!`, 'success');
+            addLog(`✅ Registros importados com sucesso: ${importedRecords}`, 'success');
+            addLog(`❌ Registros com erro: ${errorRecords}`, errorRecords > 0 ? 'error' : 'success');
+            addLog(`📊 Taxa de sucesso: ${Math.round((importedRecords / totalRecords) * 100)}%`, 'info');
+            
+            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros.`;
+            importBtn.disabled = false;
+            clearBtn.disabled = false;
+        }
+        
+        // Função para limpar o Firebase
+        async function clearFirebase() {
+            if (!confirm('⚠️ ATENÇÃO: Tem certeza que deseja limpar TODOS os dados do Firebase?\n\nEsta ação não pode ser desfeita e removerá todos os registros de clientes de logomarca.')) {
+                return;
+            }
+            
+            try {
+                addLog('🗑️ Limpando dados do Firebase...', 'info');
+                clearBtn.disabled = true;
+                
+                const response = await fetch(FIREBASE_URL, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    addLog('✅ Firebase limpo com sucesso!', 'success');
+                } else {
+                    const errorText = await response.text();
+                    addLog(`❌ Erro ao limpar Firebase: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                addLog(`❌ Erro ao limpar Firebase: ${error.message}`, 'error');
+            } finally {
+                clearBtn.disabled = false;
+            }
+        }
+        
+        // Função para adicionar logs
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            // Adicionar timestamp
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('pt-BR');
+            logEntry.textContent = `[${timeStr}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // Inicialização
+        addLog('Sistema iniciado. Aguardando arquivo Excel...', 'info');
+        addLog('Colunas esperadas no arquivo:', 'info');
+        requiredColumns.forEach((col, index) => {
+            addLog(`${index + 1}. ${col}`, 'info');
+        });
+    </script>
+</body>
+</html>
