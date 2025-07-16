@@ -552,7 +552,8 @@
                     
                     // Criar ID único baseado no timestamp e índice
                     const timestamp = Date.now();
-                    const id_unico = `${timestamp}_${i}`;
+                    const id_unico = `${i+1}`;
+                    
                     
                     // Mapeamento completo dos campos do briefing
                     const nome = cleanValue(findColumnValue(row, "Seu nome:"));

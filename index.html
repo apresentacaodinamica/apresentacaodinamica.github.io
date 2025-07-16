@@ -632,10 +632,16 @@
                     return;
                 }
                 
-                // Converter objeto em array
-                allClients = Object.values(data);
-                filteredClients = [...allClients];
-                
+                // Converter objeto em array e ordenar pelo ID (convertendo para número)
+        allClients = Object.values(data).sort((a, b) => {
+            // Converte os IDs para números antes de comparar
+            const idA = parseInt(a.id) || 0;
+            const idB = parseInt(b.id) || 0;
+            return idA - idB;
+        });
+        
+        filteredClients = [...allClients];
+
                 updateStats();
                 renderClients();
                 
@@ -671,7 +677,7 @@
             const clientsHTML = filteredClients.map(client => `
                 <div class="client-card">
                     <div class="client-header">
-                        <div class="client-name">${client.nome || 'Nome não informado'}</div>
+                        <div class="client-name">${client.nome + ' id: ' + client.id|| 'Nome não informado'}</div>
                         <div class="client-company">${client.empresaNome || client.nomeFantasia || 'Empresa não informada'}</div>
                     </div>
                     <div class="client-body">
@@ -746,7 +752,7 @@
     if (!currentClient) return;
     
     // Preencher cabeçalho do modal
-    document.getElementById('modalClientName').textContent = currentClient.nome || 'Nome não informado';
+    document.getElementById('modalClientName').textContent = currentClient.nome + currentClient.id || 'Nome não informado';
     document.getElementById('modalClientCompany').textContent = currentClient.empresaNome || currentClient.nomeFantasia || 'Empresa não informada';
     
     // Informações básicas
