@@ -100,9 +100,17 @@
             background: #38a169;
         }
         
+        .btn-warning {
+            background: #ed8936;
+        }
+        
+        .btn-warning:hover {
+            background: #dd7711;
+        }
+        
         .search-box {
             flex: 1;
-            min-width: 300px;
+            min-width: 250px;
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -110,6 +118,20 @@
         }
         
         .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            min-width: 200px;
+        }
+        
+        .filter-select:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -148,6 +170,16 @@
         .client-company {
             font-size: 14px;
             opacity: 0.9;
+        }
+        
+        .client-origin {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: inline-block;
         }
         
         .client-body {
@@ -208,6 +240,15 @@
         .status-done {
             background: #c6f6d5;
             color: #2f855a;
+        }
+        
+        .origin-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: #e2e8f0;
+            color: #4a5568;
+            font-weight: 500;
         }
         
         /* Modal Styles */
@@ -364,7 +405,7 @@
                 align-items: stretch;
             }
             
-            .search-box {
+            .search-box, .filter-select {
                 min-width: auto;
             }
             
@@ -437,6 +478,22 @@
     max-height: 90vh;
     overflow-y: auto;
 }
+
+.origin-filter-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.origin-badge-large {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+}
     </style>
 </head>
 <body>
@@ -459,12 +516,20 @@
                 <div class="stat-number" id="completedClients">0</div>
                 <div class="stat-label">Concluídos</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number" id="originsCount">0</div>
+                <div class="stat-label">Origens Diferentes</div>
+            </div>
         </div>
         
         <div class="controls">
             <input type="text" class="search-box" id="searchBox" placeholder="Buscar por nome, empresa, email...">
+            <select class="filter-select" id="originFilter">
+                <option value="all">Todas as Origens</option>
+            </select>
             <button class="btn" onclick="loadClients()">🔄 Atualizar</button>
-            <button class="btn btn-success" onclick="Atualizar()">✅ Atualizar dados</button>
+            <button class="btn btn-success" onclick="Atualizar()">📤 Importar Dados</button>
+            <button class="btn btn-warning" onclick="resetFilters()">🗑️ Limpar Filtros</button>
         </div>
         
         <div id="clientsContainer">
@@ -482,12 +547,20 @@
                 <span class="close">&times;</span>
                 <div class="modal-title" id="modalClientName">Nome do Cliente</div>
                 <div class="modal-subtitle" id="modalClientCompany">Empresa</div>
+                <div class="client-origin" id="modalClientOrigin">Origem: N/A</div>
             </div>
             <div class="modal-body">
     <div class="info-group">
         <div class="info-label">ID:</div>
         <div class="info-value">
             <span class="id-badge" id="modalId">N/A</span>
+        </div>
+    </div>
+    
+    <div class="info-group">
+        <div class="info-label">Origem:</div>
+        <div class="info-value">
+            <span class="origin-badge-large" id="modalOrigem">N/A</span>
         </div>
     </div>
     
@@ -591,8 +664,8 @@
 
         function Atualizar(){
             window.location.href = 'index2.html';
-
         }
+
         // Configuração do Firebase
         const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
         
@@ -600,15 +673,18 @@
         let allClients = [];
         let filteredClients = [];
         let currentClient = null;
+        let availableOrigins = new Set();
         
         // Elementos da interface
         const clientsContainer = document.getElementById('clientsContainer');
         const searchBox = document.getElementById('searchBox');
+        const originFilter = document.getElementById('originFilter');
         const modal = document.getElementById('clientModal');
         const closeModal = document.getElementsByClassName('close')[0];
         
         // Event Listeners
         searchBox.addEventListener('input', filterClients);
+        originFilter.addEventListener('change', filterClients);
         closeModal.addEventListener('click', () => modal.style.display = 'none');
         window.addEventListener('click', (event) => {
             if (event.target === modal) {
@@ -633,15 +709,25 @@
                 }
                 
                 // Converter objeto em array e ordenar pelo ID (convertendo para número)
-        allClients = Object.values(data).sort((a, b) => {
-            // Converte os IDs para números antes de comparar
-            const idA = parseInt(a.id) || 0;
-            const idB = parseInt(b.id) || 0;
-            return idA - idB;
-        });
-        
-        filteredClients = [...allClients];
-
+                allClients = Object.values(data).sort((a, b) => {
+                    // Converte os IDs para números antes de comparar
+                    const idA = parseInt(a.id) || 0;
+                    const idB = parseInt(b.id) || 0;
+                    return idA - idB;
+                });
+                
+                // Extrair origens únicas
+                availableOrigins = new Set();
+                allClients.forEach(client => {
+                    if (client.origem) {
+                        availableOrigins.add(client.origem);
+                    }
+                });
+                
+                // Atualizar dropdown de origens
+                updateOriginFilter();
+                
+                filteredClients = [...allClients];
                 updateStats();
                 renderClients();
                 
@@ -656,15 +742,37 @@
             }
         }
         
+        // Função para atualizar o filtro de origens
+        function updateOriginFilter() {
+            const currentValue = originFilter.value;
+            originFilter.innerHTML = '<option value="all">Todas as Origens</option>';
+            
+            const sortedOrigins = Array.from(availableOrigins).sort();
+            
+            sortedOrigins.forEach(origin => {
+                const option = document.createElement('option');
+                option.value = origin;
+                option.textContent = origin;
+                originFilter.appendChild(option);
+            });
+            
+            // Manter a seleção atual se possível
+            if (currentValue && sortedOrigins.includes(currentValue)) {
+                originFilter.value = currentValue;
+            }
+        }
+        
         // Função para atualizar estatísticas
         function updateStats() {
             const total = allClients.length;
             const pending = allClients.filter(client => !client.feito).length;
             const completed = allClients.filter(client => client.feito).length;
+            const origins = availableOrigins.size;
             
             document.getElementById('totalClients').textContent = total;
             document.getElementById('pendingClients').textContent = pending;
             document.getElementById('completedClients').textContent = completed;
+            document.getElementById('originsCount').textContent = origins;
         }
         
         // Função para renderizar clientes
@@ -679,6 +787,7 @@
                     <div class="client-header">
                         <div class="client-name">${client.nome + ' id: ' + client.id|| 'Nome não informado'}</div>
                         <div class="client-company">${client.empresaNome || client.nomeFantasia || 'Empresa não informada'}</div>
+                        <div class="client-origin">Origem: ${client.origem || 'Não definida'}</div>
                     </div>
                     <div class="client-body">
                         <div class="client-info">
@@ -693,6 +802,12 @@
                             <div class="info-row">
                                 <span class="info-label">Ramo:</span>
                                 <span class="info-value">${client.ramo || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Origem:</span>
+                                <span class="info-value">
+                                    <span class="origin-badge">${client.origem || 'Não definida'}</span>
+                                </span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Status:</span>
@@ -729,248 +844,106 @@
         // Função para filtrar clientes
         function filterClients() {
             const searchTerm = searchBox.value.toLowerCase();
+            const selectedOrigin = originFilter.value;
             
-            if (!searchTerm) {
-                filteredClients = [...allClients];
-            } else {
-                filteredClients = allClients.filter(client => 
+            filteredClients = allClients.filter(client => {
+                // Filtro por busca
+                const searchMatch = !searchTerm || 
                     (client.nome && client.nome.toLowerCase().includes(searchTerm)) ||
                     (client.empresaNome && client.empresaNome.toLowerCase().includes(searchTerm)) ||
                     (client.nomeFantasia && client.nomeFantasia.toLowerCase().includes(searchTerm)) ||
                     (client.email && client.email.toLowerCase().includes(searchTerm)) ||
-                    (client.ramo && client.ramo.toLowerCase().includes(searchTerm))
-                );
-            }
+                    (client.ramo && client.ramo.toLowerCase().includes(searchTerm));
+                
+                // Filtro por origem
+                const originMatch = selectedOrigin === 'all' || client.origem === selectedOrigin;
+                
+                return searchMatch && originMatch;
+            });
             
+            renderClients();
+        }
+        
+        // Função para resetar filtros
+        function resetFilters() {
+            searchBox.value = '';
+            originFilter.value = 'all';
+            filteredClients = [...allClients];
             renderClients();
         }
         
         // Função para abrir modal com detalhes
         function openModal(clientId) {
-    currentClient = allClients.find(client => client.id === clientId);
-    
-    if (!currentClient) return;
-    
-    // Preencher cabeçalho do modal
-    document.getElementById('modalClientName').textContent = currentClient.nome + currentClient.id || 'Nome não informado';
-    document.getElementById('modalClientCompany').textContent = currentClient.empresaNome || currentClient.nomeFantasia || 'Empresa não informada';
-    
-    // Informações básicas
-    document.getElementById('modalId').textContent = currentClient.id || 'N/A';
-    document.getElementById('modalNome').textContent = currentClient.nome || 'N/A';
-    document.getElementById('modalCpf').textContent = currentClient.cpf || 'N/A';
-    document.getElementById('modalCidade').textContent = currentClient.cidade || 'N/A';
-    document.getElementById('modalTelefone').textContent = currentClient.telefone || 'N/A';
-    document.getElementById('modalEmail').textContent = currentClient.email || 'N/A';
-    
-    // Informações da empresa
-    document.getElementById('modalEmpresaNome').textContent = currentClient.empresaNome || 'N/A';
-    document.getElementById('modalNomeFantasia').textContent = currentClient.nomeFantasia || 'N/A';
-    document.getElementById('modalRamo').textContent = currentClient.ramo || 'N/A';
-    document.getElementById('modalMeioVendas').textContent = currentClient.meioVendas || 'N/A';
-    document.getElementById('modalRedesSociais').textContent = currentClient.redesSociais || 'N/A';
-    
-    // Briefing da logomarca
-    document.getElementById('modalCor').textContent = currentClient.cor || 'N/A';
-    document.getElementById('modalCaracteristicasEvitar').textContent = currentClient.caracteristicasEvitar || 'N/A';
-    document.getElementById('modalHistoria').textContent = currentClient.historia || 'N/A';
-    document.getElementById('modalMensagem').textContent = currentClient.mensagem || 'N/A';
-    document.getElementById('modalPublicoAlvo').textContent = currentClient.publicoAlvo || 'N/A';
-    
-    // Informações de controle
-    document.getElementById('modalData').textContent = currentClient.data || 'N/A';
-    document.getElementById('modalTimestampOriginal').textContent = currentClient.timestampOriginal || 'N/A';
-    document.getElementById('modalTimestampImportacao').textContent = currentClient.timestampImportacao ? new Date(currentClient.timestampImportacao).toLocaleString('pt-BR') : 'N/A';
-    
-    // Gerar prompt completo
-    const textoGerado = gerarTextoPadrao(currentClient);
-    document.getElementById('textoGerado').value = textoGerado;
-    
-    document.getElementById('clientModal').style.display = 'block';
-}
-        
-        // Função para gerar prompt formatado
-        function generatePrompt() {
+            currentClient = allClients.find(client => client.id === clientId);
+            
             if (!currentClient) return;
             
-            const prompt = `BRIEFING PARA CRIAÇÃO DE LOGOMARCA
-
-📋 INFORMAÇÕES DO CLIENTE
-Nome: ${currentClient.nome || 'N/A'}
-CPF: ${currentClient.cpf || 'N/A'}
-Cidade: ${currentClient.cidade || 'N/A'}
-Telefone: ${currentClient.telefone || 'N/A'}
-Email: ${currentClient.email || 'N/A'}
-
-🏢 INFORMAÇÕES DA EMPRESA
-Nome da Empresa: ${currentClient.empresaNome || 'N/A'}
-Nome Fantasia: ${currentClient.nomeFantasia || 'N/A'}
-Ramo de Atividade: ${currentClient.ramo || 'N/A'}
-Meio de Vendas: ${currentClient.meioVendas || 'N/A'}
-Pretende criar site/redes sociais: ${currentClient.redesSociais || 'N/A'}
-
-🎨 ESPECIFICAÇÕES DA LOGOMARCA
-Cores sugeridas: ${currentClient.cor || 'N/A'}
-Características a evitar: ${currentClient.caracteristicasEvitar || 'N/A'}
-História da marca: ${currentClient.historia || 'N/A'}
-Mensagem a transmitir: ${currentClient.mensagem || 'N/A'}
-Público-alvo: ${currentClient.publicoAlvo || 'N/A'}
-
-📅 INFORMAÇÕES DE CONTROLE
-Data de importação: ${currentClient.data || 'N/A'}
-Timestamp original: ${currentClient.timestampOriginal || 'N/A'}
-Status: ${currentClient.feito ? 'Concluído' : 'Pendente'}
-
----
-
-PROMPT PARA IA:
-
-Crie uma logomarca para a empresa "${currentClient.empresaNome || currentClient.nomeFantasia || 'empresa'}" que atua no ramo de ${currentClient.ramo || 'atividade não especificada'}.
-
-Especificações:
-- Cores preferidas: ${currentClient.cor || 'livre escolha'}
-- Evitar: ${currentClient.caracteristicasEvitar || 'sem restrições específicas'}
-- Público-alvo: ${currentClient.publicoAlvo || 'público geral'}
-- Mensagem a transmitir: ${currentClient.mensagem || 'profissionalismo e qualidade'}
-- História/contexto: ${currentClient.historia || 'sem contexto específico'}
-
-A logomarca deve ser moderna, profissional e adequada para uso em ${currentClient.meioVendas || 'diversos meios'}.${currentClient.redesSociais && currentClient.redesSociais.toLowerCase().includes('sim') ? ' Considere também o uso em redes sociais e plataformas digitais.' : ''}`;
+            // Preencher cabeçalho do modal
+            document.getElementById('modalClientName').textContent = currentClient.nome + currentClient.id || 'Nome não informado';
+            document.getElementById('modalClientCompany').textContent = currentClient.empresaNome || currentClient.nomeFantasia || 'Empresa não informada';
+            document.getElementById('modalClientOrigin').textContent = `Origem: ${currentClient.origem || 'Não definida'}`;
             
-            document.getElementById('promptContent').textContent = prompt;
+            // Informações básicas
+            document.getElementById('modalId').textContent = currentClient.id || 'N/A';
+            document.getElementById('modalOrigem').textContent = currentClient.origem || 'Não definida';
+            document.getElementById('modalNome').textContent = currentClient.nome || 'N/A';
+            document.getElementById('modalCpf').textContent = currentClient.cpf || 'N/A';
+            document.getElementById('modalCidade').textContent = currentClient.cidade || 'N/A';
+            document.getElementById('modalTelefone').textContent = currentClient.telefone || 'N/A';
+            document.getElementById('modalEmail').textContent = currentClient.email || 'N/A';
+            
+            // Informações da empresa
+            document.getElementById('modalEmpresaNome').textContent = currentClient.empresaNome || 'N/A';
+            document.getElementById('modalNomeFantasia').textContent = currentClient.nomeFantasia || 'N/A';
+            document.getElementById('modalRamo').textContent = currentClient.ramo || 'N/A';
+            document.getElementById('modalMeioVendas').textContent = currentClient.meioVendas || 'N/A';
+            document.getElementById('modalRedesSociais').textContent = currentClient.redesSociais || 'N/A';
+            
+            // Briefing da logomarca
+            document.getElementById('modalCor').textContent = currentClient.cor || 'N/A';
+            document.getElementById('modalCaracteristicasEvitar').textContent = currentClient.caracteristicasEvitar || 'N/A';
+            document.getElementById('modalHistoria').textContent = currentClient.historia || 'N/A';
+            document.getElementById('modalMensagem').textContent = currentClient.mensagem || 'N/A';
+            document.getElementById('modalPublicoAlvo').textContent = currentClient.publicoAlvo || 'N/A';
+            
+            // Informações de controle
+            document.getElementById('modalData').textContent = currentClient.data || 'N/A';
+            document.getElementById('modalTimestampOriginal').textContent = currentClient.timestampOriginal || 'N/A';
+            document.getElementById('modalTimestampImportacao').textContent = currentClient.timestampImportacao ? new Date(currentClient.timestampImportacao).toLocaleString('pt-BR') : 'N/A';
+            
+            // Gerar prompt completo
+            const textoGerado = gerarTextoPadrao(currentClient);
+            document.getElementById('textoGerado').value = textoGerado;
+            
+            document.getElementById('clientModal').style.display = 'block';
         }
         
-        // Função para copiar prompt
-        function copyPrompt() {
-            const promptContent = document.getElementById('promptContent');
-            
-            // Criar elemento temporário para copiar
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = promptContent.textContent;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-            
-            // Feedback visual
-            const copyBtn = event.target;
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = '✅ Copiado!';
-            copyBtn.style.background = '#48bb78';
-            
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-                copyBtn.style.background = '#667eea';
-            }, 2000);
-        }
-        
-        // Função para alternar status
-        async function toggleStatus(clientId) {
-            const client = allClients.find(c => c.id === clientId);
-            if (!client) return;
-            
-            try {
-                const newStatus = !client.feito;
-                
-                // Atualizar no Firebase
-                const updateUrl = `https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca/cliente_${clientId}.json`;
-                const response = await fetch(updateUrl, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ feito: newStatus })
-                });
-                
-                if (response.ok) {
-                    // Atualizar localmente
-                    client.feito = newStatus;
-                    updateStats();
-                    renderClients();
-                    
-                    // Atualizar modal se estiver aberto
-                    if (currentClient && currentClient.id === clientId) {
-                        currentClient.feito = newStatus;
-                        document.getElementById('detailStatus').innerHTML = `
-                            <span class="status-badge ${newStatus ? 'status-done' : 'status-pending'}">
-                                ${newStatus ? 'Concluído' : 'Pendente'}
-                            </span>
-                        `;
-                    }
-                } else {
-                    alert('Erro ao atualizar status. Tente novamente.');
-                }
-                
-            } catch (error) {
-                console.error('Erro ao atualizar status:', error);
-                alert('Erro ao atualizar status. Verifique sua conexão.');
-            }
-        }
-        
-        // Função para marcar todos como feito
-        async function markAllAsDone() {
-            if (!confirm('Tem certeza que deseja marcar TODOS os clientes como concluídos?')) {
-                return;
-            }
-            
-            try {
-                const updates = {};
-                allClients.forEach(client => {
-                    if (!client.feito) {
-                        updates[`cliente_${client.id}/feito`] = true;
-                    }
-                });
-                
-                if (Object.keys(updates).length === 0) {
-                    alert('Todos os clientes já estão marcados como concluídos!');
-                    return;
-                }
-                
-                const response = await fetch('https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates)
-                });
-                
-                if (response.ok) {
-                    // Atualizar localmente
-                    allClients.forEach(client => client.feito = true);
-                    filteredClients.forEach(client => client.feito = true);
-                    
-                    updateStats();
-                    renderClients();
-                    
-                    alert('Todos os clientes foram marcados como concluídos!');
-                } else {
-                    alert('Erro ao atualizar status. Tente novamente.');
-                }
-                
-            } catch (error) {
-                console.error('Erro ao atualizar todos os status:', error);
-                alert('Erro ao atualizar status. Verifique sua conexão.');
-            }
-        }
+        // Função para gerar prompt formatado
+        function gerarTextoPadrao(cliente) {
+            const nome = cliente.nome || '[Nome não informado]';
+            const empresaNome = cliente.empresaNome || '[Nome da empresa não informado]';
+            const nomeFantasia = cliente.nomeFantasia || '[Nome fantasia não informado]';
+            const ramo = cliente.ramo || '[Ramo não informado]';
+            const cor = cliente.cor || '[Cor não informada]';
+            const caracteristicasEvitar = cliente.caracteristicasEvitar || '[Sem restrições específicas]';
+            const historia = cliente.historia || '[Sem história específica]';
+            const mensagem = cliente.mensagem || '[Sem mensagem específica]';
+            const publicoAlvo = cliente.publicoAlvo || '[Público geral]';
+            const meioVendas = cliente.meioVendas || '[Meio de vendas não especificado]';
+            const redesSociais = cliente.redesSociais || '[Não informado]';
+            const cidade = cliente.cidade || '[Cidade não informada]';
+            const telefone = cliente.telefone || '[Telefone não informado]';
+            const email = cliente.email || '[Email não informado]';
+            const origem = cliente.origem || '[Origem não definida]';
 
-function gerarTextoPadrao(cliente) {
-    const nome = cliente.nome || '[Nome não informado]';
-    const empresaNome = cliente.empresaNome || '[Nome da empresa não informado]';
-    const nomeFantasia = cliente.nomeFantasia || '[Nome fantasia não informado]';
-    const ramo = cliente.ramo || '[Ramo não informado]';
-    const cor = cliente.cor || '[Cor não informada]';
-    const caracteristicasEvitar = cliente.caracteristicasEvitar || '[Sem restrições específicas]';
-    const historia = cliente.historia || '[Sem história específica]';
-    const mensagem = cliente.mensagem || '[Sem mensagem específica]';
-    const publicoAlvo = cliente.publicoAlvo || '[Público geral]';
-    const meioVendas = cliente.meioVendas || '[Meio de vendas não especificado]';
-    const redesSociais = cliente.redesSociais || '[Não informado]';
-    const cidade = cliente.cidade || '[Cidade não informada]';
-    const telefone = cliente.telefone || '[Telefone não informado]';
-    const email = cliente.email || '[Email não informado]';
-
-    return `BRIEFING COMPLETO PARA CRIAÇÃO DE LOGOMARCA
+            return `BRIEFING COMPLETO PARA CRIAÇÃO DE LOGOMARCA
 
 📋 INFORMAÇÕES DO CLIENTE
 Nome: ${nome}
 Cidade: ${cidade}
 Telefone: ${telefone}
 Email: ${email}
+Origem: ${origem}
 
 🏢 INFORMAÇÕES DA EMPRESA
 Nome da Empresa: ${empresaNome}
@@ -998,6 +971,7 @@ ESPECIFICAÇÕES TÉCNICAS:
 - Público-alvo: ${publicoAlvo}
 - Mensagem a transmitir: ${mensagem}
 - História/contexto: ${historia}
+- Origem dos dados: ${origem}
 
 REQUISITOS:
 - A logomarca deve ser adequada para uso em ${meioVendas}
@@ -1009,17 +983,54 @@ CONTEXTO ADICIONAL:
 Cliente: ${nome}
 Localização: ${cidade}
 Contato: ${telefone} | ${email}
+Origem: ${origem}
 
 Por favor, crie algo que represente bem a essência da marca "${nomeFantasia}" e seja memorável para o público-alvo especificado.`;
-}
+        }
 
-function copiarTexto() {
-    const textoGerado = document.getElementById('textoGerado');
-    textoGerado.select();
-    textoGerado.setSelectionRange(0, 99999); // Para dispositivos móveis
-    document.execCommand("copy");
-    alert("Texto copiado para a área de transferência!");
-}
+        function copiarTexto() {
+            const textoGerado = document.getElementById('textoGerado');
+            textoGerado.select();
+            textoGerado.setSelectionRange(0, 99999); // Para dispositivos móveis
+            document.execCommand("copy");
+            alert("Texto copiado para a área de transferência!");
+        }
+
+        // Função para alternar status
+        async function toggleStatus(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            try {
+                const newStatus = !client.feito;
+                
+                // Atualizar no Firebase
+                const updateUrl = `https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca/cliente_${clientId}.json`;
+                const response = await fetch(updateUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ feito: newStatus })
+                });
+                
+                if (response.ok) {
+                    // Atualizar localmente
+                    client.feito = newStatus;
+                    updateStats();
+                    renderClients();
+                    
+                    // Atualizar modal se estiver aberto
+                    if (currentClient && currentClient.id === clientId) {
+                        currentClient.feito = newStatus;
+                    }
+                } else {
+                    alert('Erro ao atualizar status. Tente novamente.');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status. Verifique sua conexão.');
+            }
+        }
     </script>
 </body>
 </html>

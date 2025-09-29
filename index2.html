@@ -87,6 +87,15 @@
             background: #c82333;
         }
         
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
         .progress-container {
             margin-top: 20px;
             display: none;
@@ -200,11 +209,66 @@
             color: #666;
             margin-top: 5px;
         }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #17a2b8;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        }
+        
+        .form-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Importador de XLSX para Firebase - Briefing Logomarca</h1>
+        
+        <div class="config-section">
+            <h3>Configuração da Origem dos Dados</h3>
+            <div class="form-group">
+                <label for="origemInput">Origem dos Registros:</label>
+                <input type="text" id="origemInput" class="form-control" placeholder="Ex: Base de Dados 1, Site XYZ, Importação Manual, etc.">
+                <div class="form-help">Este campo será adicionado a todos os registros importados para identificar a fonte dos dados.</div>
+            </div>
+            <button class="btn btn-warning" id="updateOrigemBtn">Atualizar Origem</button>
+            <span id="origemStatus" style="margin-left: 10px; font-size: 14px;"></span>
+        </div>
         
         <div class="upload-area" id="uploadArea">
             <p>Arraste e solte seu arquivo XLSX aqui ou clique para selecionar</p>
@@ -225,6 +289,10 @@
             <div class="stat-card">
                 <div class="stat-number" id="columnsFound">0</div>
                 <div class="stat-label">Colunas Detectadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="origemAtual">-</div>
+                <div class="stat-label">Origem Configurada</div>
             </div>
         </div>
         
@@ -274,10 +342,15 @@
         const totalRecords = document.getElementById('totalRecords');
         const validRecords = document.getElementById('validRecords');
         const columnsFound = document.getElementById('columnsFound');
+        const origemInput = document.getElementById('origemInput');
+        const updateOrigemBtn = document.getElementById('updateOrigemBtn');
+        const origemStatus = document.getElementById('origemStatus');
+        const origemAtual = document.getElementById('origemAtual');
         
         // Variáveis globais
         let excelData = null;
         let excelColumns = [];
+        let origemDados = "Não definida"; // Valor padrão
         
         // Colunas obrigatórias do formulário de briefing
         let requiredColumns = [
@@ -301,6 +374,7 @@
         
         // Event Listeners
         selectFileBtn.addEventListener('click', () => fileInput.click());
+        updateOrigemBtn.addEventListener('click', updateOrigem);
         
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -324,6 +398,29 @@
         fileInput.addEventListener('change', handleFileSelect);
         importBtn.addEventListener('click', importToFirebase);
         clearBtn.addEventListener('click', clearFirebase);
+        
+        // Função para atualizar a origem
+        function updateOrigem() {
+            const novaOrigem = origemInput.value.trim();
+            
+            if (!novaOrigem) {
+                origemStatus.textContent = "Por favor, insira um valor para a origem.";
+                origemStatus.style.color = "#dc3545";
+                return;
+            }
+            
+            origemDados = novaOrigem;
+            origemAtual.textContent = novaOrigem.length > 10 ? novaOrigem.substring(0, 10) + "..." : novaOrigem;
+            origemStatus.textContent = "Origem atualizada com sucesso!";
+            origemStatus.style.color = "#28a745";
+            
+            addLog(`Origem dos dados definida como: "${origemDados}"`, 'success');
+            
+            // Limpar status após 3 segundos
+            setTimeout(() => {
+                origemStatus.textContent = "";
+            }, 3000);
+        }
         
         // Função para lidar com a seleção de arquivo
         function handleFileSelect() {
@@ -460,6 +557,7 @@
             totalRecords.textContent = total;
             validRecords.textContent = valid;
             columnsFound.textContent = columns;
+            origemAtual.textContent = origemDados.length > 10 ? origemDados.substring(0, 10) + "..." : origemDados;
             statsContainer.style.display = 'grid';
         }
         
@@ -527,6 +625,13 @@
                 addLog('Nenhum dado para importar.', 'error');
                 return;
             }
+            
+            if (origemDados === "Não definida") {
+                addLog('AVISO: A origem dos dados não foi definida. Use "Não definida" ou configure uma origem específica.', 'warning');
+                if (!confirm('Deseja continuar com a origem como "Não definida"?')) {
+                    return;
+                }
+            }
 
             progressContainer.style.display = 'block';
             importBtn.disabled = true;
@@ -537,6 +642,7 @@
             let errorRecords = 0;
 
             addLog(`Iniciando importação de ${totalRecords} registros...`, 'info');
+            addLog(`Origem dos dados: "${origemDados}"`, 'info');
 
             // Processar cada registro
             for (let i = 0; i < excelData.length; i++) {
@@ -594,7 +700,8 @@
                         "data": dataFormatada,
                         "feito": false,
                         "timestampOriginal": timestampOriginal,
-                        "timestampImportacao": new Date().toISOString()
+                        "timestampImportacao": new Date().toISOString(),
+                        "origem": origemDados // NOVO CAMPO ADICIONADO
                     };
 
                     // Enviar para o Firebase usando PATCH
@@ -606,7 +713,7 @@
                     
                     if (response.ok) {
                         importedRecords++;
-                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Importado com sucesso`, 'success');
+                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Importado com sucesso (Origem: ${origemDados})`, 'success');
                     } else {
                         errorRecords++;
                         const errorText = await response.text();
@@ -635,8 +742,9 @@
             addLog(`✅ Registros importados com sucesso: ${importedRecords}`, 'success');
             addLog(`❌ Registros com erro: ${errorRecords}`, errorRecords > 0 ? 'error' : 'success');
             addLog(`📊 Taxa de sucesso: ${Math.round((importedRecords / totalRecords) * 100)}%`, 'info');
+            addLog(`📍 Origem dos dados: "${origemDados}"`, 'info');
             
-            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros.`;
+            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros. Origem: ${origemDados}`;
             importBtn.disabled = false;
             clearBtn.disabled = false;
         }
@@ -689,6 +797,7 @@
         requiredColumns.forEach((col, index) => {
             addLog(`${index + 1}. ${col}`, 'info');
         });
+        addLog('Configure a origem dos dados antes de importar.', 'info');
     </script>
 </body>
 </html>
