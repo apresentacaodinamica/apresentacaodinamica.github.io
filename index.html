@@ -182,6 +182,16 @@
             display: inline-block;
         }
         
+        .client-city {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 3px;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
         .client-body {
             padding: 20px;
         }
@@ -248,6 +258,15 @@
             font-size: 11px;
             background: #e2e8f0;
             color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .city-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: #bee3f8;
+            color: #2c5282;
             font-weight: 500;
         }
         
@@ -494,6 +513,15 @@
     color: white;
     font-weight: 600;
 }
+
+.city-badge-large {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    background: #4299e1;
+    color: white;
+    font-weight: 600;
+}
     </style>
 </head>
 <body>
@@ -523,7 +551,7 @@
         </div>
         
         <div class="controls">
-            <input type="text" class="search-box" id="searchBox" placeholder="Buscar por nome, empresa, email...">
+            <input type="text" class="search-box" id="searchBox" placeholder="Buscar por nome, empresa, email, cidade...">
             <select class="filter-select" id="originFilter">
                 <option value="all">Todas as Origens</option>
             </select>
@@ -548,6 +576,7 @@
                 <div class="modal-title" id="modalClientName">Nome do Cliente</div>
                 <div class="modal-subtitle" id="modalClientCompany">Empresa</div>
                 <div class="client-origin" id="modalClientOrigin">Origem: N/A</div>
+                <div class="client-city" id="modalClientCity">Cidade: N/A</div>
             </div>
             <div class="modal-body">
     <div class="info-group">
@@ -563,6 +592,13 @@
             <span class="origin-badge-large" id="modalOrigem">N/A</span>
         </div>
     </div>
+
+    <div class="info-group">
+        <div class="info-label">Cidade:</div>
+        <div class="info-value">
+            <span class="city-badge-large" id="modalCidadeBadge">N/A</span>
+        </div>
+    </div>
     
     <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">📋 Informações Pessoais</h3>
     
@@ -573,10 +609,6 @@
     <div class="info-group">
         <div class="info-label">CPF:</div>
         <div class="info-value" id="modalCpf"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Cidade:</div>
-        <div class="info-value" id="modalCidade"></div>
     </div>
     <div class="info-group">
         <div class="info-label">Telefone:</div>
@@ -788,6 +820,7 @@
                         <div class="client-name">${client.nome + ' id: ' + client.id|| 'Nome não informado'}</div>
                         <div class="client-company">${client.empresaNome || client.nomeFantasia || 'Empresa não informada'}</div>
                         <div class="client-origin">Origem: ${client.origem || 'Não definida'}</div>
+                        <div class="client-city">Cidade: ${client.cidade || 'Não informada'}</div>
                     </div>
                     <div class="client-body">
                         <div class="client-info">
@@ -807,6 +840,12 @@
                                 <span class="info-label">Origem:</span>
                                 <span class="info-value">
                                     <span class="origin-badge">${client.origem || 'Não definida'}</span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Cidade:</span>
+                                <span class="info-value">
+                                    <span class="city-badge">${client.cidade || 'Não informada'}</span>
                                 </span>
                             </div>
                             <div class="info-row">
@@ -853,7 +892,8 @@
                     (client.empresaNome && client.empresaNome.toLowerCase().includes(searchTerm)) ||
                     (client.nomeFantasia && client.nomeFantasia.toLowerCase().includes(searchTerm)) ||
                     (client.email && client.email.toLowerCase().includes(searchTerm)) ||
-                    (client.ramo && client.ramo.toLowerCase().includes(searchTerm));
+                    (client.ramo && client.ramo.toLowerCase().includes(searchTerm)) ||
+                    (client.cidade && client.cidade.toLowerCase().includes(searchTerm));
                 
                 // Filtro por origem
                 const originMatch = selectedOrigin === 'all' || client.origem === selectedOrigin;
@@ -882,13 +922,14 @@
             document.getElementById('modalClientName').textContent = currentClient.nome + currentClient.id || 'Nome não informado';
             document.getElementById('modalClientCompany').textContent = currentClient.empresaNome || currentClient.nomeFantasia || 'Empresa não informada';
             document.getElementById('modalClientOrigin').textContent = `Origem: ${currentClient.origem || 'Não definida'}`;
+            document.getElementById('modalClientCity').textContent = `Cidade: ${currentClient.cidade || 'Não informada'}`;
             
             // Informações básicas
             document.getElementById('modalId').textContent = currentClient.id || 'N/A';
             document.getElementById('modalOrigem').textContent = currentClient.origem || 'Não definida';
+            document.getElementById('modalCidadeBadge').textContent = currentClient.cidade || 'Não informada';
             document.getElementById('modalNome').textContent = currentClient.nome || 'N/A';
             document.getElementById('modalCpf').textContent = currentClient.cpf || 'N/A';
-            document.getElementById('modalCidade').textContent = currentClient.cidade || 'N/A';
             document.getElementById('modalTelefone').textContent = currentClient.telefone || 'N/A';
             document.getElementById('modalEmail').textContent = currentClient.email || 'N/A';
             

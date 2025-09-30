@@ -264,7 +264,7 @@
             <div class="form-group">
                 <label for="origemInput">Origem dos Registros:</label>
                 <input type="text" id="origemInput" class="form-control" placeholder="Ex: Base de Dados 1, Site XYZ, Importação Manual, etc.">
-                <div class="form-help">Este campo será adicionado a todos os registros importados para identificar a fonte dos dados.</div>
+                <div class="form-help">Este campo será adicionado a todos os registros importados para identificar a fonte dos dados. Também será usado como fallback para o campo cidade quando não estiver disponível.</div>
             </div>
             <button class="btn btn-warning" id="updateOrigemBtn">Atualizar Origem</button>
             <span id="origemStatus" style="margin-left: 10px; font-size: 14px;"></span>
@@ -619,6 +619,23 @@
             return null;
         }
         
+        // Função para encontrar cidade (com fallback para origem)
+        function findCidadeValue(row) {
+            // Tentar encontrar cidade com diferentes variações
+            const cidadeVariations = ["Cidade:", "cidaade", "Cidade", "cidade"];
+            
+            for (const variation of cidadeVariations) {
+                const value = findColumnValue(row, variation);
+                if (value && value !== "N/A" && value.trim() !== "") {
+                    return cleanValue(value);
+                }
+            }
+            
+            // Se não encontrar cidade, usar a origem como fallback
+            addLog(`⚠️ Campo cidade não encontrado, usando origem "${origemDados}" como fallback`, 'warning');
+            return origemDados;
+        }
+        
         // Função para importar para o Firebase
         async function importToFirebase() {
             if (!excelData || excelData.length === 0) {
@@ -664,7 +681,7 @@
                     // Mapeamento completo dos campos do briefing
                     const nome = cleanValue(findColumnValue(row, "Seu nome:"));
                     const cpf = cleanValue(findColumnValue(row, "CPF:"));
-                    const cidade = cleanValue(findColumnValue(row, "Cidade:"));
+                    const cidade = findCidadeValue(row); // NOVA FUNÇÃO PARA CIDADE
                     const telefone = cleanValue(findColumnValue(row, "Qual o seu número de telefone (com DDD)?"));
                     const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
                     const empresaNome = cleanValue(findColumnValue(row, "Sua empresa já tem um nome? Se sim, qual?"));
@@ -701,7 +718,7 @@
                         "feito": false,
                         "timestampOriginal": timestampOriginal,
                         "timestampImportacao": new Date().toISOString(),
-                        "origem": origemDados // NOVO CAMPO ADICIONADO
+                        "origem": origemDados
                     };
 
                     // Enviar para o Firebase usando PATCH
@@ -713,7 +730,7 @@
                     
                     if (response.ok) {
                         importedRecords++;
-                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Importado com sucesso (Origem: ${origemDados})`, 'success');
+                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Cidade: ${cidade} - Importado com sucesso (Origem: ${origemDados})`, 'success');
                     } else {
                         errorRecords++;
                         const errorText = await response.text();
