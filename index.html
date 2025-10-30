@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Clientes Logomarca</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -339,65 +340,6 @@
             padding: 30px;
         }
         
-        .detail-section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2d3748;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        
-        .detail-item {
-            background: #f7fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .detail-label {
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 13px;
-            margin-bottom: 5px;
-        }
-        
-        .detail-value {
-            color: #2d3748;
-            font-size: 14px;
-            word-break: break-word;
-        }
-        
-        .prompt-section {
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .prompt-content {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
         .loading {
             text-align: center;
             padding: 50px;
@@ -414,6 +356,320 @@
             margin-bottom: 10px;
         }
         
+        /* Editor Styles */
+        .editor-container {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .editor-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .editor-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .preview-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .controls-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .card-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-background {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-element {
+            position: absolute;
+        }
+        
+        .card-logo {
+            max-width: 60px;
+            max-height: 40px;
+            object-fit: contain;
+        }
+        
+        .card-name {
+            font-size: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .card-email {
+            font-size: 5px;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .editor-loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #6a11cb;
+            font-weight: bold;
+        }
+        
+        .editor-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-group {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-group .info-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .info-group .info-value {
+            color: #2d3748;
+            font-size: 14px;
+            word-wrap: break-word;
+            max-width: 100%;
+            white-space: pre-wrap;
+        }
+
+        .text-area {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            margin-top: 10px;
+        }
+
+        .text-area:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .id-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .origin-filter-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .origin-badge-large {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .city-badge-large {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            background: #4299e1;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .upload-container {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .logo-preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .logo-preview {
+            max-width: 120px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        
+
+        /* Estilos específicos para o editor de cartão */
+.card-background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.card-background {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Impede a distorção da imagem */
+    display: block;
+}
+
+.card-element {
+    position: absolute;
+    z-index: 2;
+}
+
+.logo-container {
+    left: 135px;
+    top: 140px;
+    width: 60px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-logo {
+    max-width: 80px;
+    max-height: 40px;
+    margin-top: 150px;
+    margin-left: 230px;
+    object-fit: contain;
+    display: block;
+}
+
+.card-name {
+    left: 270px;
+    top: 265px;
+    font-size: 5px;
+    font-weight: bold;
+    color: #333;
+    font-family: Arial, sans-serif;
+}
+
+.card-email {
+    left: 300px;
+    top: 280px;
+    font-size: 5px;
+    color: #666;
+    font-family: Arial, sans-serif;
+}
+
+.card-tel {
+    left: 220px;
+    top: 280px;
+    font-size: 5px;
+    color: #666;
+    font-family: Arial, sans-serif;
+}
+
+/* Container do cartão com proporção fixa */
+.card-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* Proporção 16:9 - ajuste conforme seu template */
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
         @media (max-width: 768px) {
             .clients-grid {
                 grid-template-columns: 1fr;
@@ -432,96 +688,11 @@
                 width: 95%;
                 margin: 5% auto;
             }
+            
+            .editor-content {
+                flex-direction: column;
+            }
         }
-
-.info-group {
-    margin-bottom: 15px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #667eea;
-}
-
-.info-group .info-label {
-    font-weight: 600;
-    color: #4a5568;
-    font-size: 13px;
-    margin-bottom: 5px;
-}
-
-.info-group .info-value {
-    color: #2d3748;
-    font-size: 14px;
-    word-wrap: break-word;
-    max-width: 100%;
-    white-space: pre-wrap;
-}
-
-.text-area {
-    width: 100%;
-    min-height: 300px;
-    padding: 15px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    resize: vertical;
-    margin-top: 10px;
-}
-
-.text-area:focus {
-    outline: none;
-    border-color: #667eea;
-}
-
-.modal-footer {
-    padding: 20px 30px;
-    border-top: 1px solid #eee;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.id-badge {
-    background: #667eea;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.9em;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.modal-content {
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.origin-filter-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.origin-badge-large {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 12px;
-    background: #667eea;
-    color: white;
-    font-weight: 600;
-}
-
-.city-badge-large {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 12px;
-    background: #4299e1;
-    color: white;
-    font-weight: 600;
-}
     </style>
 </head>
 <body>
@@ -566,6 +737,72 @@
                 <p>Aguarde enquanto buscamos os dados do Firebase</p>
             </div>
         </div>
+        
+        <!-- Editor de Cartão de Visita -->
+        <div class="editor-container" id="editorContainer">
+            <div class="editor-header">
+                <div class="editor-title">Editor de Cartão de Visita - Cliente: <span id="editorClientName"></span></div>
+                <button class="btn" onclick="closeEditor()">Fechar Editor</button>
+            </div>
+            
+            <div class="editor-content">
+                <section class="preview-section">
+                    <h2 class="section-title">Pré-visualização do Cartão</h2>
+                    <div class="card-container" id="cardContainer">
+                        <!-- Template e elementos serão carregados aqui via JavaScript -->
+                    </div>
+                    
+                    <div class="editor-loading" id="editorLoading">
+                        Gerando imagem... Aguarde!
+                    </div>
+                    
+                    <div class="editor-buttons">
+                        <button class="btn btn-success" id="downloadBtn">Baixar Cartão</button>
+                        <button class="btn" id="previewBtn">Pré-visualizar Imagem</button>
+                    </div>
+                </section>
+                
+                <section class="controls-section">
+                    <h2 class="section-title">Upload da Logo</h2>
+                    
+                    <div class="upload-container">
+                        <label for="logoUpload" class="btn">📁 Selecionar Logo</label>
+                        <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+                        <p style="margin-top: 10px; color: #666;">Formatos: PNG, JPG, JPEG (Máx. 5MB)</p>
+                        
+                        <div class="logo-preview-container" id="logoPreviewContainer" style="display: none;">
+                            <img id="logoPreview" class="logo-preview" alt="Prévia da Logo">
+                            <button class="btn btn-warning" id="removeLogoBtn" style="margin-top: 10px;">Remover Logo</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="nameInput">Nome da Empresa</label>
+                        <input type="text" id="nameInput" placeholder="Nome da empresa">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emailInput">E-mail</label>
+                        <input type="text" id="emailInput" placeholder="E-mail da empresa">
+                    </div>
+
+                      <div class="form-group">
+                        <label for="telInput">Tel</label>
+                        <input type="text" id="telInput" placeholder="E-mail da empresa">
+                    </div>
+                    
+                    <div class="form-group">
+                        <h3>Posição dos Elementos</h3>
+                        <p>Para ajustar a posição, edite diretamente no código:</p>
+                        <ul>
+                            <li>Logo: left: 30px; top: 30px;</li>
+                            <li>Nome: left: 170px; top: 50px;</li>
+                            <li>E-mail: left: 170px; top: 80px;</li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -579,125 +816,138 @@
                 <div class="client-city" id="modalClientCity">Cidade: N/A</div>
             </div>
             <div class="modal-body">
-    <div class="info-group">
-        <div class="info-label">ID:</div>
-        <div class="info-value">
-            <span class="id-badge" id="modalId">N/A</span>
-        </div>
-    </div>
-    
-    <div class="info-group">
-        <div class="info-label">Origem:</div>
-        <div class="info-value">
-            <span class="origin-badge-large" id="modalOrigem">N/A</span>
+                <div class="info-group">
+                    <div class="info-label">ID:</div>
+                    <div class="info-value">
+                        <span class="id-badge" id="modalId">N/A</span>
+                    </div>
+                </div>
+                
+                <div class="info-group">
+                    <div class="info-label">Origem:</div>
+                    <div class="info-value">
+                        <span class="origin-badge-large" id="modalOrigem">N/A</span>
+                    </div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Cidade:</div>
+                    <div class="info-value">
+                        <span class="city-badge-large" id="modalCidadeBadge">N/A</span>
+                    </div>
+                </div>
+                
+                <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">📋 Informações Pessoais</h3>
+                
+                <div class="info-group">
+                    <div class="info-label">Nome Completo:</div>
+                    <div class="info-value" id="modalNome"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">CPF:</div>
+                    <div class="info-value" id="modalCpf"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Telefone:</div>
+                    <div class="info-value" id="modalTelefone"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value" id="modalEmail"></div>
+                </div>
+                
+                <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">🏢 Informações da Empresa</h3>
+                
+                <div class="info-group">
+                    <div class="info-label">Nome da Empresa:</div>
+                    <div class="info-value" id="modalEmpresaNome"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Nome Fantasia:</div>
+                    <div class="info-value" id="modalNomeFantasia"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Ramo de Atividade:</div>
+                    <div class="info-value" id="modalRamo"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Meio de Vendas:</div>
+                    <div class="info-value" id="modalMeioVendas"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Pretende criar site/redes sociais:</div>
+                    <div class="info-value" id="modalRedesSociais"></div>
+                </div>
+                
+                <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">🎨 Briefing da Logomarca</h3>
+                
+                <div class="info-group">
+                    <div class="info-label">Cores Sugeridas:</div>
+                    <div class="info-value" id="modalCor"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Características a Evitar:</div>
+                    <div class="info-value" id="modalCaracteristicasEvitar"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">História da Marca:</div>
+                    <div class="info-value" id="modalHistoria"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Mensagem a Transmitir:</div>
+                    <div class="info-value" id="modalMensagem"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Público-Alvo:</div>
+                    <div class="info-value" id="modalPublicoAlvo"></div>
+                </div>
+                
+                <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">📅 Informações de Controle</h3>
+                
+                <div class="info-group">
+                    <div class="info-label">Data de Importação:</div>
+                    <div class="info-value" id="modalData"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Timestamp Original:</div>
+                    <div class="info-value" id="modalTimestampOriginal"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Timestamp de Importação:</div>
+                    <div class="info-value" id="modalTimestampImportacao"></div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <div class="info-label">Prompt Completo para IA:</div>
+                    <textarea id="textoGerado" class="text-area" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="copiarTexto()">📋 Copiar Texto</button>
+
+               <div class="upload-container">
+                        <label for="logoUpload" class="btn">📁 Selecionar Logo</label>
+                        <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+                        <p style="margin-top: 10px; color: #666;">Formatos: PNG, JPG, JPEG (Máx. 5MB)</p>
+                        
+                        <div class="logo-preview-container" id="logoPreviewContainer" style="display: none;">
+                            <img id="logoPreview" class="logo-preview" alt="Prévia da Logo">
+                            <button class="btn btn-warning" id="removeLogoBtn" style="margin-top: 10px;">Remover Logo</button>
+                        </div>
+                    </div>
+
+                <button class="btn" onclick="modal.style.display = 'none'">Fechar</button>
+            </div>
         </div>
     </div>
 
-    <div class="info-group">
-        <div class="info-label">Cidade:</div>
-        <div class="info-value">
-            <span class="city-badge-large" id="modalCidadeBadge">N/A</span>
-        </div>
-    </div>
-    
-    <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">📋 Informações Pessoais</h3>
-    
-    <div class="info-group">
-        <div class="info-label">Nome Completo:</div>
-        <div class="info-value" id="modalNome"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">CPF:</div>
-        <div class="info-value" id="modalCpf"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Telefone:</div>
-        <div class="info-value" id="modalTelefone"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Email:</div>
-        <div class="info-value" id="modalEmail"></div>
-    </div>
-    
-    <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">🏢 Informações da Empresa</h3>
-    
-    <div class="info-group">
-        <div class="info-label">Nome da Empresa:</div>
-        <div class="info-value" id="modalEmpresaNome"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Nome Fantasia:</div>
-        <div class="info-value" id="modalNomeFantasia"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Ramo de Atividade:</div>
-        <div class="info-value" id="modalRamo"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Meio de Vendas:</div>
-        <div class="info-value" id="modalMeioVendas"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Pretende criar site/redes sociais:</div>
-        <div class="info-value" id="modalRedesSociais"></div>
-    </div>
-    
-    <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">🎨 Briefing da Logomarca</h3>
-    
-    <div class="info-group">
-        <div class="info-label">Cores Sugeridas:</div>
-        <div class="info-value" id="modalCor"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Características a Evitar:</div>
-        <div class="info-value" id="modalCaracteristicasEvitar"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">História da Marca:</div>
-        <div class="info-value" id="modalHistoria"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Mensagem a Transmitir:</div>
-        <div class="info-value" id="modalMensagem"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Público-Alvo:</div>
-        <div class="info-value" id="modalPublicoAlvo"></div>
-    </div>
-    
-    <h3 style="color: #667eea; margin: 20px 0 15px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;">📅 Informações de Controle</h3>
-    
-    <div class="info-group">
-        <div class="info-label">Data de Importação:</div>
-        <div class="info-value" id="modalData"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Timestamp Original:</div>
-        <div class="info-value" id="modalTimestampOriginal"></div>
-    </div>
-    <div class="info-group">
-        <div class="info-label">Timestamp de Importação:</div>
-        <div class="info-value" id="modalTimestampImportacao"></div>
-    </div>
-    
-    <div style="margin-top: 30px;">
-        <div class="info-label">Prompt Completo para IA:</div>
-        <textarea id="textoGerado" class="text-area" readonly></textarea>
-    </div>
-</div>
-        <div class="modal-footer">
-    <button class="btn btn-success" onclick="copiarTexto()">📋 Copiar Texto</button>
-    <button class="btn" onclick="modal.style.display = 'none'">Fechar</button>
-</div>
-        </div>
+
+     <!-- ADICIONE ESTA DIV COM A IMAGEM DO TEMPLATE -->
+    <div id="templateContainer" style="display: none;">
+        <img id="templateImage" src="template.png" alt="Template">
     </div>
 
     <script>
-
-        function Atualizar(){
-            window.location.href = 'index2.html';
-        }
-
         // Configuração do Firebase
         const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
         
@@ -706,6 +956,9 @@
         let filteredClients = [];
         let currentClient = null;
         let availableOrigins = new Set();
+        let imagemParaUpload = null;
+        let templateBase64 = null;
+        let logoBase64 = null;
         
         // Elementos da interface
         const clientsContainer = document.getElementById('clientsContainer');
@@ -713,6 +966,22 @@
         const originFilter = document.getElementById('originFilter');
         const modal = document.getElementById('clientModal');
         const closeModal = document.getElementsByClassName('close')[0];
+        const editorContainer = document.getElementById('editorContainer');
+        
+        // Elementos do editor
+        const cardContainer = document.getElementById('cardContainer');
+        const logoUpload = document.getElementById('logoUpload');
+        const nameInput = document.getElementById('nameInput');
+        const emailInput = document.getElementById('emailInput');
+        const telInput = document.getElementById('telInput');
+        
+        const downloadBtn = document.getElementById('downloadBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const editorLoading = document.getElementById('editorLoading');
+        const logoPreview = document.getElementById('logoPreview');
+        const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+        const removeLogoBtn = document.getElementById('removeLogoBtn');
+        const editorClientName = document.getElementById('editorClientName');
         
         // Event Listeners
         searchBox.addEventListener('input', filterClients);
@@ -724,8 +993,95 @@
             }
         });
         
+        // Event Listeners do editor
+        logoUpload.addEventListener('change', handleLogoUpload);
+        nameInput.addEventListener('input', updateCard);
+        emailInput.addEventListener('input', updateCard);
+        telInput.addEventListener('input', updateCard);
+        downloadBtn.addEventListener('click', downloadCard);
+        previewBtn.addEventListener('click', previewCard);
+        removeLogoBtn.addEventListener('click', removeLogo);
+        
+        // Função para converter imagem para Base64
+        function imageParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
         // Carregar clientes ao iniciar
-        document.addEventListener('DOMContentLoaded', loadClients);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClients();
+            loadTemplate();
+        });
+        
+        // Função para carregar o template padrão
+               async function loadTemplate() {
+            try {
+                const templateImg = document.getElementById('templateImage');
+                
+                // Esperar a imagem carregar
+                await new Promise((resolve, reject) => {
+                    if (templateImg.complete && templateImg.naturalHeight !== 0) {
+                        resolve();
+                    } else {
+                        templateImg.onload = resolve;
+                        templateImg.onerror = reject;
+                    }
+                });
+                
+                // Converter imagem para Base64 usando canvas
+                //templateBase64 = await convertImageToBase64(templateImg);
+                     templateBase64 = `
+                        imagem base64
+                     `
+                // Inicializar o editor com o template
+                initializeEditor();
+                
+            } catch (error) {
+                console.error('Erro ao carregar template:', error);
+               
+              initializeEditor();
+            }
+        }
+        
+        // FUNÇÃO PARA CONVERTER IMAGEM EM BASE64 VIA CANVAS
+        function convertImageToBase64(imageElement) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = imageElement.naturalWidth;
+                    canvas.height = imageElement.naturalHeight;
+                    ctx.drawImage(imageElement, 0, 0);
+                    
+                    const base64 = canvas.toDataURL('image/png');
+                    resolve(base64);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        
+        // Inicializar o editor com o template (mantida igual)
+    function initializeEditor() {  
+    cardContainer.innerHTML = `
+        <div class="card-background-container">
+            <img src="${templateBase64}" alt="Template" class="card-background">
+        </div>
+        <div class="card-element logo-container" id="logoElement">
+            <img src="" alt="Logo" class="card-logo" id="cardLogo" style="display: none;">
+        </div>
+        <div class="card-element card-name" id="nameElement">Nome da Empresa</div>
+        <div class="card-element card-email" id="emailElement">email@empresa.com</div>
+        <div class="card-element card-tel" id="telElement">(11) 99999-9999</div>
+    `;
+}
+
         
         // Função para carregar clientes do Firebase
         async function loadClients() {
@@ -1071,6 +1427,226 @@ Por favor, crie algo que represente bem a essência da marca "${nomeFantasia}" e
                 console.error('Erro ao atualizar status:', error);
                 alert('Erro ao atualizar status. Verifique sua conexão.');
             }
+        }
+        
+        // Funções do Editor de Cartão
+      function openEditor() {
+    if (!currentClient) return;
+    
+    // Preencher dados do cliente atual no editor
+    editorClientName.textContent = currentClient.nome || 'Cliente';
+    nameInput.value = currentClient.empresaNome || currentClient.nomeFantasia || '';
+    emailInput.value = currentClient.email || '';
+    telInput.value = currentClient.telefone || '';
+
+    updateCard();
+    
+    // VERIFICAR SE JÁ EXISTE LOGO SALVA
+    if (currentClient.logoBase64) {
+        logoBase64 = currentClient.logoBase64;
+        logoPreview.src = logoBase64;
+        logoPreviewContainer.style.display = 'block';
+        
+        const cardLogo = document.getElementById('cardLogo');
+        cardLogo.src = logoBase64;
+        cardLogo.style.display = 'block';
+    } else {
+        // Resetar se não tiver logo
+        logoPreviewContainer.style.display = 'none';
+        const cardLogo = document.getElementById('cardLogo');
+        cardLogo.style.display = 'none';
+    }
+    
+    // Resetar upload atual
+    imagemParaUpload = null;
+    logoUpload.value = '';
+    
+    modal.style.display = 'none';
+    editorContainer.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+        
+        function closeEditor() {
+            editorContainer.style.display = 'none';
+        }
+        
+   async function handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Arquivo muito grande. Máximo 5MB.');
+            return;
+        }
+        
+        try {
+            // Converter para Base64
+            logoBase64 = await imageParaBase64(file);
+            
+            // SALVAR NO FIREBASE
+            if (currentClient) {
+                const updateUrl = `https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca/cliente_${currentClient.id}.json`;
+                const response = await fetch(updateUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        logoBase64: logoBase64,
+                        logoUploadDate: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    // Atualizar localmente
+                    currentClient.logoBase64 = logoBase64;
+                    alert('Logo salva com sucesso!');
+                }
+            }
+            
+            // Atualizar preview e cartão
+            logoPreview.src = logoBase64;
+            logoPreviewContainer.style.display = 'block';
+            
+            const cardLogo = document.getElementById('cardLogo');
+            cardLogo.src = logoBase64;
+            cardLogo.style.display = 'block';
+            
+            imagemParaUpload = file;
+            
+        } catch (error) {
+            console.error('Erro ao processar logo:', error);
+            alert('Erro ao processar a imagem. Tente novamente.');
+        }
+    }
+}
+        
+     async function removeLogo() {
+    // REMOVER DO FIREBASE
+    if (currentClient) {
+        const updateUrl = `https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca/cliente_${currentClient.id}.json`;
+        await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                logoBase64: null,
+                logoUploadDate: null
+            })
+        });
+        
+        // Atualizar localmente
+        currentClient.logoBase64 = null;
+    }
+    
+    logoPreviewContainer.style.display = 'none';
+    logoUpload.value = '';
+    imagemParaUpload = null;
+    logoBase64 = null;
+    
+    // Remover logo do cartão
+    const cardLogo = document.getElementById('cardLogo');
+    cardLogo.style.display = 'none';
+    
+    alert('Logo removida com sucesso!');
+}
+        
+       function updateCard() {
+    const nameElement = document.getElementById('nameElement');
+    const emailElement = document.getElementById('emailElement');
+    const telElement = document.getElementById('telElement');
+    
+    nameElement.textContent = nameInput.value || 'Nome da Empresa';
+    emailElement.textContent = emailInput.value || 'email@empresa.com';
+    telElement.textContent = telInput.value || '(11) 99999-9999';
+}
+        
+       function downloadCard() {
+    editorLoading.style.display = 'block';
+    
+    // Obter as dimensões reais do template
+    const cardContainer = document.getElementById('cardContainer');
+    const backgroundImg = cardContainer.querySelector('.card-background');
+    
+    // Usar dimensões fixas para consistência
+    const width = 800; // Largura fixa em pixels
+    const height = 450; // Altura fixa em pixels (ajuste conforme seu template)
+    
+    html2canvas(cardContainer, {
+        width: width,
+        height: height,
+        scale: 2, // Maior qualidade
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        windowWidth: width,
+        windowHeight: height
+    }).then(canvas => {
+        // Converter canvas para URL de dados
+        const imageData = canvas.toDataURL('image/png');
+        
+        // Criar link de download
+        const link = document.createElement('a');
+        link.download = `cartao-${currentClient.id || 'cliente'}.png`;
+        link.href = imageData;
+        
+        // Simular clique para iniciar download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        editorLoading.style.display = 'none';
+    }).catch(error => {
+        console.error('Erro ao gerar imagem:', error);
+        alert('Erro ao gerar a imagem. Tente novamente.');
+        editorLoading.style.display = 'none';
+    });
+}
+        
+        function previewCard() {
+            editorLoading.style.display = 'block';
+            
+            // Usar html2canvas para converter o cartão em imagem
+            html2canvas(cardContainer, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: null,
+                logging: false
+            }).then(canvas => {
+                // Abrir a imagem em uma nova janela
+                const imageWindow = window.open();
+                imageWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Pré-visualização do Cartão</title>
+                            <style>
+                                body { 
+                                    display: flex; 
+                                    justify-content: center; 
+                                    align-items: center; 
+                                    height: 100vh; 
+                                    margin: 0; 
+                                    background: #f0f0f0; 
+                                }
+                                img { max-width: 90%; max-height: 90%; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+                            </style>
+                        </head>
+                        <body>
+                            <img src="${canvas.toDataURL('image/png')}" alt="Pré-visualização do Cartão">
+                        </body>
+                    </html>
+                `);
+                
+                editorLoading.style.display = 'none';
+            }).catch(error => {
+                console.error('Erro ao gerar pré-visualização:', error);
+                alert('Erro ao gerar a pré-visualização. Tente novamente.');
+                editorLoading.style.display = 'none';
+            });
+        }
+
+        function Atualizar(){
+            window.location.href = 'index2.html';
         }
     </script>
 </body>
