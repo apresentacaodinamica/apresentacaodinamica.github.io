@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Importador de XLSX para Firebase</title>
+    <title>Importador de XLSX para Firebase - Briefing Logomarca</title>
     <style>
         * {
             box-sizing: border-box;
@@ -253,6 +253,28 @@
             color: #666;
             margin-top: 5px;
         }
+        
+        .duplicate-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .duplicate-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .duplicate-item {
+            padding: 5px;
+            border-bottom: 1px solid #ffe5b4;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -287,6 +309,10 @@
                 <div class="stat-label">Registros Válidos</div>
             </div>
             <div class="stat-card">
+                <div class="stat-number" id="duplicateRecords">0</div>
+                <div class="stat-label">Duplicados Removidos</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-number" id="columnsFound">0</div>
                 <div class="stat-label">Colunas Detectadas</div>
             </div>
@@ -294,6 +320,12 @@
                 <div class="stat-number" id="origemAtual">-</div>
                 <div class="stat-label">Origem Configurada</div>
             </div>
+        </div>
+        
+        <div class="duplicate-warning" id="duplicateWarning">
+            <strong>⚠️ Registros duplicados encontrados!</strong>
+            <p>Os seguintes registros serão removidos da importação porque já existem no sistema (email duplicado):</p>
+            <div class="duplicate-list" id="duplicateList"></div>
         </div>
         
         <div class="columns-preview" id="columnsPreview">
@@ -311,6 +343,7 @@
         
         <div style="text-align: center; margin-top: 20px;">
             <button class="btn" id="importBtn" disabled>Importar para Firebase</button>
+            <button class="btn" id="checkDuplicatesBtn" disabled>Verificar Duplicados</button>
             <button class="btn btn-danger" id="clearBtn">Limpar Firebase</button>
         </div>
         
@@ -331,6 +364,7 @@
         const fileInput = document.getElementById('fileInput');
         const selectFileBtn = document.getElementById('selectFileBtn');
         const importBtn = document.getElementById('importBtn');
+        const checkDuplicatesBtn = document.getElementById('checkDuplicatesBtn');
         const clearBtn = document.getElementById('clearBtn');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
@@ -341,16 +375,23 @@
         const statsContainer = document.getElementById('statsContainer');
         const totalRecords = document.getElementById('totalRecords');
         const validRecords = document.getElementById('validRecords');
+        const duplicateRecords = document.getElementById('duplicateRecords');
         const columnsFound = document.getElementById('columnsFound');
         const origemInput = document.getElementById('origemInput');
         const updateOrigemBtn = document.getElementById('updateOrigemBtn');
         const origemStatus = document.getElementById('origemStatus');
         const origemAtual = document.getElementById('origemAtual');
+        const duplicateWarning = document.getElementById('duplicateWarning');
+        const duplicateList = document.getElementById('duplicateList');
         
         // Variáveis globais
         let excelData = null;
         let excelColumns = [];
-        let origemDados = "Não definida"; // Valor padrão
+        let origemDados = "Não definida";
+        let existingClients = {}; // Armazena os clientes existentes no Firebase
+        let existingEmails = new Set(); // Set para busca rápida de emails duplicados
+        let filteredData = []; // Dados após remover duplicados
+        let duplicateInfo = []; // Informações sobre duplicados removidos
         
         // Colunas obrigatórias do formulário de briefing
         let requiredColumns = [
@@ -375,6 +416,7 @@
         // Event Listeners
         selectFileBtn.addEventListener('click', () => fileInput.click());
         updateOrigemBtn.addEventListener('click', updateOrigem);
+        checkDuplicatesBtn.addEventListener('click', checkForDuplicates);
         
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -399,6 +441,112 @@
         importBtn.addEventListener('click', importToFirebase);
         clearBtn.addEventListener('click', clearFirebase);
         
+        // Função para buscar todos os clientes existentes no Firebase
+        async function fetchExistingClients() {
+            addLog('Buscando clientes existentes no Firebase para validação de duplicados...', 'info');
+            
+            try {
+                const response = await fetch(FIREBASE_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ao buscar dados: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                existingClients = data || {};
+                existingEmails.clear();
+                
+                let count = 0;
+                for (const [key, client] of Object.entries(existingClients)) {
+                    if (client && client.email && client.email !== "N/A") {
+                        const emailNormalizado = client.email.toLowerCase().trim();
+                        existingEmails.add(emailNormalizado);
+                        count++;
+                    }
+                }
+                
+                addLog(`Encontrados ${count} clientes existentes no sistema.`, 'success');
+                return true;
+                
+            } catch (error) {
+                addLog(`Erro ao buscar clientes existentes: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Função para verificar duplicados e filtrar dados
+        async function checkForDuplicates() {
+            if (!excelData || excelData.length === 0) {
+                addLog('Nenhum dado carregado para verificar duplicados.', 'error');
+                return;
+            }
+            
+            if (origemDados === "Não definida") {
+                addLog('AVISO: A origem dos dados não foi definida.', 'warning');
+            }
+            
+            addLog('Verificando duplicados por email...', 'info');
+            
+            // Buscar clientes existentes
+            await fetchExistingClients();
+            
+            // Filtrar dados
+            filteredData = [];
+            duplicateInfo = [];
+            
+            for (let i = 0; i < excelData.length; i++) {
+                const row = excelData[i];
+                const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
+                const nome = cleanValue(findColumnValue(row, "Seu nome:"));
+                
+                const emailNormalizado = email.toLowerCase().trim();
+                
+                if (existingEmails.has(emailNormalizado) && email !== "N/A") {
+                    // Duplicado encontrado
+                    duplicateInfo.push({
+                        index: i + 1,
+                        nome: nome,
+                        email: email,
+                        cpf: cleanValue(findColumnValue(row, "CPF:"))
+                    });
+                    addLog(`⚠️ Duplicado detectado: ${nome} (${email}) - será removido da importação`, 'warning');
+                } else {
+                    // Não duplicado, adicionar à lista filtrada
+                    filteredData.push(row);
+                }
+            }
+            
+            // Atualizar estatísticas
+            totalRecords.textContent = excelData.length;
+            validRecords.textContent = filteredData.length;
+            duplicateRecords.textContent = duplicateInfo.length;
+            
+            // Mostrar aviso de duplicados
+            if (duplicateInfo.length > 0) {
+                duplicateWarning.style.display = 'block';
+                duplicateList.innerHTML = '';
+                
+                duplicateInfo.forEach(dup => {
+                    const item = document.createElement('div');
+                    item.className = 'duplicate-item';
+                    item.innerHTML = `📧 <strong>${dup.nome}</strong> - Email: ${dup.email} ${dup.cpf !== "N/A" ? `- CPF: ${dup.cpf}` : ''} (Linha ${dup.index})`;
+                    duplicateList.appendChild(item);
+                });
+                
+                addLog(`🔍 Verificação concluída: ${duplicateInfo.length} registros duplicados removidos, ${filteredData.length} registros prontos para importação.`, 'success');
+            } else {
+                duplicateWarning.style.display = 'none';
+                addLog(`✅ Nenhum duplicado encontrado! ${filteredData.length} registros prontos para importação.`, 'success');
+            }
+            
+            // Habilitar botão de importar se houver dados filtrados
+            importBtn.disabled = (filteredData.length === 0);
+            
+            if (filteredData.length === 0 && duplicateInfo.length > 0) {
+                addLog('Todos os registros são duplicados. Nada a importar.', 'warning');
+            }
+        }
+        
         // Função para atualizar a origem
         function updateOrigem() {
             const novaOrigem = origemInput.value.trim();
@@ -416,7 +564,6 @@
             
             addLog(`Origem dos dados definida como: "${origemDados}"`, 'success');
             
-            // Limpar status após 3 segundos
             setTimeout(() => {
                 origemStatus.textContent = "";
             }, 3000);
@@ -464,16 +611,12 @@
             addLog('Analisando arquivo Excel...', 'info');
             
             try {
-                // Ler o arquivo Excel
                 const workbook = XLSX.read(data, { type: 'array' });
-                
-                // Pegar a primeira planilha
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
                 addLog(`Planilha encontrada: "${sheetName}"`, 'info');
                 
-                // Converter para JSON
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
                     header: 1,
                     defval: '',
@@ -485,16 +628,12 @@
                     return;
                 }
                 
-                // Primeira linha são os cabeçalhos
                 const headers = jsonData[0].filter(header => header && header.trim() !== '');
                 excelColumns = headers;
                 
                 addLog(`Colunas encontradas: ${headers.length}`, 'info');
-                
-                // Mostrar colunas detectadas
                 showColumnsPreview(headers);
                 
-                // Verificar colunas necessárias
                 const missingColumns = requiredColumns.filter(col => 
                     !headers.some(header => header.trim() === col.trim())
                 );
@@ -502,25 +641,22 @@
                 if (missingColumns.length > 0) {
                     addLog(`AVISO: Algumas colunas necessárias não foram encontradas:`, 'warning');
                     missingColumns.forEach(col => addLog(`  - "${col}"`, 'warning'));
-                    addLog('A importação pode não funcionar corretamente.', 'warning');
                 } else {
                     addLog('Todas as colunas necessárias foram encontradas no Excel.', 'success');
                 }
                 
-                // Processar dados (pular a primeira linha que são os cabeçalhos)
+                // Processar dados
                 excelData = [];
                 
                 for (let i = 1; i < jsonData.length; i++) {
                     const values = jsonData[i];
                     const row = {};
                     
-                    // Mapear valores para cabeçalhos
                     for (let j = 0; j < headers.length; j++) {
                         const value = j < values.length ? values[j] : '';
                         row[headers[j]] = value;
                     }
                     
-                    // Só adicionar linhas que não estão completamente vazias
                     const hasData = Object.values(row).some(value => 
                         value && value.toString().trim() !== ''
                     );
@@ -530,12 +666,21 @@
                     }
                 }
                 
-                // Atualizar estatísticas
-                updateStats(excelData.length, excelData.length, headers.length);
+                // Resetar dados filtrados
+                filteredData = [];
+                duplicateInfo = [];
+                duplicateWarning.style.display = 'none';
+                
+                // Atualizar estatísticas iniciais
+                totalRecords.textContent = excelData.length;
+                validRecords.textContent = excelData.length;
+                duplicateRecords.textContent = 0;
+                columnsFound.textContent = headers.length;
+                origemAtual.textContent = origemDados.length > 10 ? origemDados.substring(0, 10) + "..." : origemDados;
+                statsContainer.style.display = 'grid';
                 
                 addLog(`Excel analisado com sucesso. ${excelData.length} registros encontrados.`, 'success');
                 
-                // Debug: Mostrar primeiro registro
                 if (excelData.length > 0) {
                     addLog('Exemplo do primeiro registro:', 'info');
                     Object.entries(excelData[0]).forEach(([key, value]) => {
@@ -545,7 +690,11 @@
                     });
                 }
                 
-                importBtn.disabled = false;
+                // Habilitar botão de verificar duplicados
+                checkDuplicatesBtn.disabled = false;
+                importBtn.disabled = true; // Só habilita após verificar duplicados
+                
+                addLog('Clique em "Verificar Duplicados" para validar emails e remover registros já existentes.', 'info');
                 
             } catch (error) {
                 addLog(`Erro ao processar arquivo Excel: ${error.message}`, 'error');
@@ -588,7 +737,6 @@
             
             let cleaned = String(value).trim();
             
-            // Verificar se é vazio ou valores inválidos
             if (cleaned === '' || 
                 cleaned.toLowerCase() === 'nan' || 
                 cleaned.toLowerCase() === 'null' || 
@@ -600,14 +748,12 @@
             return cleaned || "N/A";
         }
         
-        // Função para encontrar coluna por nome (busca flexível)
+        // Função para encontrar coluna por nome
         function findColumnValue(row, columnName) {
-            // Busca exata primeiro
             if (row[columnName]) {
                 return row[columnName];
             }
             
-            // Busca flexível (ignora espaços e case)
             const normalizedTarget = columnName.toLowerCase().trim();
             
             for (const [key, value] of Object.entries(row)) {
@@ -619,9 +765,8 @@
             return null;
         }
         
-        // Função para encontrar cidade (com fallback para origem)
+        // Função para encontrar cidade
         function findCidadeValue(row) {
-            // Tentar encontrar cidade com diferentes variações
             const cidadeVariations = ["Cidade:", "cidaade", "Cidade", "cidade"];
             
             for (const variation of cidadeVariations) {
@@ -631,59 +776,53 @@
                 }
             }
             
-            // Se não encontrar cidade, usar a origem como fallback
             addLog(`⚠️ Campo cidade não encontrado, usando origem "${origemDados}" como fallback`, 'warning');
             return origemDados;
         }
         
-        // Função para importar para o Firebase
+        // Função para importar para o Firebase (usa dados já filtrados)
         async function importToFirebase() {
-            if (!excelData || excelData.length === 0) {
-                addLog('Nenhum dado para importar.', 'error');
+            if (filteredData.length === 0) {
+                addLog('Nenhum dado para importar. Verifique duplicados primeiro.', 'error');
                 return;
             }
             
             if (origemDados === "Não definida") {
-                addLog('AVISO: A origem dos dados não foi definida. Use "Não definida" ou configure uma origem específica.', 'warning');
-                if (!confirm('Deseja continuar com a origem como "Não definida"?')) {
+                if (!confirm('A origem dos dados não foi definida. Deseja continuar?')) {
                     return;
                 }
             }
 
             progressContainer.style.display = 'block';
             importBtn.disabled = true;
+            checkDuplicatesBtn.disabled = true;
             clearBtn.disabled = true;
 
-            const totalRecords = excelData.length;
+            const totalRecords = filteredData.length;
             let importedRecords = 0;
             let errorRecords = 0;
 
-            addLog(`Iniciando importação de ${totalRecords} registros...`, 'info');
+            addLog(`Iniciando importação de ${totalRecords} registros (após remoção de ${duplicateInfo.length} duplicados)...`, 'info');
             addLog(`Origem dos dados: "${origemDados}"`, 'info');
 
-            // Processar cada registro
-            for (let i = 0; i < excelData.length; i++) {
-                const row = excelData[i];
+            for (let i = 0; i < filteredData.length; i++) {
+                const row = filteredData[i];
                 
                 try {
-                    // Obter a data atual formatada
                     const dataAtual = new Date();
                     const dia = String(dataAtual.getDate()).padStart(2, '0');
                     const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
                     const ano = dataAtual.getFullYear();
                     const dataFormatada = `${dia}/${mes}/${ano}`;
                     
-                    // Criar ID único baseado no timestamp e índice
                     const timestamp = Date.now();
-                    const id_unico = `${i+1}`;
+                    const id_unico = `${timestamp}_${i+1}`;
                     
-                    
-                    // Mapeamento completo dos campos do briefing
                     const nome = cleanValue(findColumnValue(row, "Seu nome:"));
-                    const cpf = cleanValue(findColumnValue(row, "CPF:"));
-                    const cidade = findCidadeValue(row); // NOVA FUNÇÃO PARA CIDADE
-                    const telefone = cleanValue(findColumnValue(row, "Qual o seu número de telefone (com DDD)?"));
                     const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
+                    const cidade = findCidadeValue(row);
+                    const telefone = cleanValue(findColumnValue(row, "Qual o seu número de telefone (com DDD)?"));
+                    const cpf = cleanValue(findColumnValue(row, "CPF:"));
                     const empresaNome = cleanValue(findColumnValue(row, "Sua empresa já tem um nome? Se sim, qual?"));
                     const nomeFantasia = cleanValue(findColumnValue(row, "Já possui um nome fantasia a ser usado?"));
                     const ramo = cleanValue(findColumnValue(row, "Qual o ramo da sua empresa?"));
@@ -696,7 +835,6 @@
                     const redesSociais = cleanValue(findColumnValue(row, "Você pretende criar site ou redes sociais para seu negócio?"));
                     const timestampOriginal = cleanValue(findColumnValue(row, "Carimbo de data/hora"));
 
-                    // Criar o objeto de dados completo para o Firebase
                     const cliente_data = {
                         "id": id_unico,
                         "nome": nome,
@@ -721,20 +859,19 @@
                         "origem": origemDados
                     };
 
-                    // Enviar para o Firebase usando PATCH
                     const response = await fetch(FIREBASE_URL, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ [`cliente_${cliente_data.id}`]: cliente_data })
+                        body: JSON.stringify({ [`cliente_${id_unico}`]: cliente_data })
                     });
                     
                     if (response.ok) {
                         importedRecords++;
-                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - Cidade: ${cidade} - Importado com sucesso (Origem: ${origemDados})`, 'success');
+                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - ${cliente_data.email} - Importado com sucesso`, 'success');
                     } else {
                         errorRecords++;
                         const errorText = await response.text();
-                        addLog(`❌ Erro ao importar registro ${i+1}: Status ${response.status} - ${errorText}`, 'error');
+                        addLog(`❌ Erro ao importar registro ${i+1}: ${errorText}`, 'error');
                     }
                     
                 } catch (error) {
@@ -742,27 +879,25 @@
                     addLog(`❌ Erro ao processar registro ${i+1}: ${error.message}`, 'error');
                 }
                 
-                // Atualizar barra de progresso
                 const progress = Math.round(((i + 1) / totalRecords) * 100);
                 progressBar.style.width = `${progress}%`;
                 statusText.textContent = `Processando... ${i + 1}/${totalRecords} (${progress}%)`;
                 statusText.style.display = 'block';
                 
-                // Pequena pausa para não sobrecarregar o Firebase
                 if (i % 10 === 0) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
             
-            // Resumo final
             addLog(`\n🎉 Importação concluída!`, 'success');
             addLog(`✅ Registros importados com sucesso: ${importedRecords}`, 'success');
             addLog(`❌ Registros com erro: ${errorRecords}`, errorRecords > 0 ? 'error' : 'success');
             addLog(`📊 Taxa de sucesso: ${Math.round((importedRecords / totalRecords) * 100)}%`, 'info');
-            addLog(`📍 Origem dos dados: "${origemDados}"`, 'info');
+            addLog(`🚫 Duplicados ignorados: ${duplicateInfo.length}`, 'warning');
             
-            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros. Origem: ${origemDados}`;
+            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros. Duplicados ignorados: ${duplicateInfo.length}`;
             importBtn.disabled = false;
+            checkDuplicatesBtn.disabled = false;
             clearBtn.disabled = false;
         }
         
@@ -782,6 +917,8 @@
                 
                 if (response.ok) {
                     addLog('✅ Firebase limpo com sucesso!', 'success');
+                    existingClients = {};
+                    existingEmails.clear();
                 } else {
                     const errorText = await response.text();
                     addLog(`❌ Erro ao limpar Firebase: ${errorText}`, 'error');
@@ -799,7 +936,6 @@
             const logEntry = document.createElement('div');
             logEntry.className = `log-entry ${type}`;
             
-            // Adicionar timestamp
             const now = new Date();
             const timeStr = now.toLocaleTimeString('pt-BR');
             logEntry.textContent = `[${timeStr}] ${message}`;
@@ -808,13 +944,9 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
         
-        // Inicialização
         addLog('Sistema iniciado. Aguardando arquivo Excel...', 'info');
-        addLog('Colunas esperadas no arquivo:', 'info');
-        requiredColumns.forEach((col, index) => {
-            addLog(`${index + 1}. ${col}`, 'info');
-        });
-        addLog('Configure a origem dos dados antes de importar.', 'info');
+        addLog('NOVO: Sistema irá verificar emails duplicados antes da importação!', 'success');
+        addLog('Passo a passo: 1) Carregue Excel → 2) Clique em "Verificar Duplicados" → 3) Confirme a lista → 4) Importe', 'info');
     </script>
 </body>
 </html>
