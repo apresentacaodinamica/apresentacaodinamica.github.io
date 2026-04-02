@@ -275,6 +275,19 @@
             border-bottom: 1px solid #ffe5b4;
             font-family: monospace;
         }
+        
+        .id-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .id-info strong {
+            color: #0c5460;
+        }
     </style>
 </head>
 <body>
@@ -286,10 +299,14 @@
             <div class="form-group">
                 <label for="origemInput">Origem dos Registros:</label>
                 <input type="text" id="origemInput" class="form-control" placeholder="Ex: Base de Dados 1, Site XYZ, Importação Manual, etc.">
-                <div class="form-help">Este campo será adicionado a todos os registros importados para identificar a fonte dos dados. Também será usado como fallback para o campo cidade quando não estiver disponível.</div>
+                <div class="form-help">Este campo será adicionado a todos os registros importados para identificar a fonte dos dados.</div>
             </div>
             <button class="btn btn-warning" id="updateOrigemBtn">Atualizar Origem</button>
             <span id="origemStatus" style="margin-left: 10px; font-size: 14px;"></span>
+        </div>
+        
+        <div class="id-info" id="idInfo">
+            <strong>🔢 IDs Sequenciais:</strong> Os próximos IDs serão gerados automaticamente na sequência <span id="nextIdPreview">1</span>, <span id="nextIdPreview2">2</span>, <span id="nextIdPreview3">3</span>...
         </div>
         
         <div class="upload-area" id="uploadArea">
@@ -319,6 +336,10 @@
             <div class="stat-card">
                 <div class="stat-number" id="origemAtual">-</div>
                 <div class="stat-label">Origem Configurada</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="proximoId">0</div>
+                <div class="stat-label">Próximo ID</div>
             </div>
         </div>
         
@@ -357,8 +378,11 @@
 
     <script>
         // Configuração do Firebase
-        const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
+        //const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
         
+                const FIREBASE_URL = "https://logosmega-5609f-default-rtdb.firebaseio.com/clientes-logomarca.json";
+        
+
         // Elementos da interface
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -383,17 +407,23 @@
         const origemAtual = document.getElementById('origemAtual');
         const duplicateWarning = document.getElementById('duplicateWarning');
         const duplicateList = document.getElementById('duplicateList');
+        const proximoIdSpan = document.getElementById('proximoId');
+        const idInfo = document.getElementById('idInfo');
+        const nextIdPreview = document.getElementById('nextIdPreview');
+        const nextIdPreview2 = document.getElementById('nextIdPreview2');
+        const nextIdPreview3 = document.getElementById('nextIdPreview3');
         
         // Variáveis globais
         let excelData = null;
         let excelColumns = [];
         let origemDados = "Não definida";
-        let existingClients = {}; // Armazena os clientes existentes no Firebase
-        let existingEmails = new Set(); // Set para busca rápida de emails duplicados
-        let filteredData = []; // Dados após remover duplicados
-        let duplicateInfo = []; // Informações sobre duplicados removidos
+        let existingClients = {};
+        let existingEmails = new Set();
+        let filteredData = [];
+        let duplicateInfo = [];
+        let proximoIdDisponivel = 1;
         
-        // Colunas obrigatórias do formulário de briefing
+        // Colunas obrigatórias
         let requiredColumns = [
             "Carimbo de data/hora",
             "Seu nome:",
@@ -441,7 +471,69 @@
         importBtn.addEventListener('click', importToFirebase);
         clearBtn.addEventListener('click', clearFirebase);
         
-        // Função para buscar todos os clientes existentes no Firebase
+        // Função para buscar o maior ID existente e calcular o próximo ID sequencial
+        async function buscarProximoIdSequencial() {
+            addLog('Buscando próximo ID sequencial disponível...', 'info');
+            
+            try {
+                const response = await fetch(FIREBASE_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ao buscar dados: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                existingClients = data || {};
+                
+                let maxId = 0;
+                
+                if (data) {
+                    for (const [key, client] of Object.entries(data)) {
+                        if (client && client.id) {
+                            let idNumber = null;
+                            
+                            // Tenta extrair o número do ID
+                            if (typeof client.id === 'number') {
+                                idNumber = client.id;
+                            } else if (typeof client.id === 'string') {
+                                // Verifica se é "cliente_123" ou apenas "123"
+                                if (client.id.includes('_')) {
+                                    idNumber = parseInt(client.id.split('_').pop());
+                                } else {
+                                    idNumber = parseInt(client.id);
+                                }
+                            }
+                            
+                            if (!isNaN(idNumber) && idNumber > maxId) {
+                                maxId = idNumber;
+                            }
+                        }
+                    }
+                }
+                
+                proximoIdDisponivel = maxId + 1;
+                proximoIdSpan.textContent = proximoIdDisponivel;
+                
+                // Mostrar preview dos próximos IDs
+                nextIdPreview.textContent = proximoIdDisponivel;
+                nextIdPreview2.textContent = proximoIdDisponivel + 1;
+                nextIdPreview3.textContent = proximoIdDisponivel + 2;
+                idInfo.style.display = 'block';
+                
+                addLog(`📊 Maior ID encontrado: ${maxId}`, 'success');
+                addLog(`🔢 Próximo ID sequencial disponível: ${proximoIdDisponivel}`, 'success');
+                
+                return proximoIdDisponivel;
+                
+            } catch (error) {
+                addLog(`Erro ao buscar próximo ID: ${error.message}`, 'error');
+                proximoIdDisponivel = 1;
+                proximoIdSpan.textContent = 1;
+                return 1;
+            }
+        }
+        
+        // Função para buscar todos os clientes existentes (para validação de email)
         async function fetchExistingClients() {
             addLog('Buscando clientes existentes no Firebase para validação de duplicados...', 'info');
             
@@ -481,14 +573,11 @@
                 return;
             }
             
-            if (origemDados === "Não definida") {
-                addLog('AVISO: A origem dos dados não foi definida.', 'warning');
-            }
-            
             addLog('Verificando duplicados por email...', 'info');
             
-            // Buscar clientes existentes
+            // Buscar clientes existentes e próximo ID
             await fetchExistingClients();
+            await buscarProximoIdSequencial();
             
             // Filtrar dados
             filteredData = [];
@@ -692,22 +781,13 @@
                 
                 // Habilitar botão de verificar duplicados
                 checkDuplicatesBtn.disabled = false;
-                importBtn.disabled = true; // Só habilita após verificar duplicados
+                importBtn.disabled = true;
                 
                 addLog('Clique em "Verificar Duplicados" para validar emails e remover registros já existentes.', 'info');
                 
             } catch (error) {
                 addLog(`Erro ao processar arquivo Excel: ${error.message}`, 'error');
             }
-        }
-        
-        // Função para atualizar estatísticas
-        function updateStats(total, valid, columns) {
-            totalRecords.textContent = total;
-            validRecords.textContent = valid;
-            columnsFound.textContent = columns;
-            origemAtual.textContent = origemDados.length > 10 ? origemDados.substring(0, 10) + "..." : origemDados;
-            statsContainer.style.display = 'grid';
         }
         
         // Função para mostrar preview das colunas
@@ -780,7 +860,7 @@
             return origemDados;
         }
         
-        // Função para importar para o Firebase (usa dados já filtrados)
+        // Função para importar para o Firebase com IDs sequenciais
         async function importToFirebase() {
             if (filteredData.length === 0) {
                 addLog('Nenhum dado para importar. Verifique duplicados primeiro.', 'error');
@@ -792,21 +872,28 @@
                     return;
                 }
             }
-
+            
+            // Buscar o próximo ID novamente antes de importar (garantia)
+            await buscarProximoIdSequencial();
+            
+            let idAtual = proximoIdDisponivel;
+            
             progressContainer.style.display = 'block';
             importBtn.disabled = true;
             checkDuplicatesBtn.disabled = true;
             clearBtn.disabled = true;
-
-            const totalRecords = filteredData.length;
-            let importedRecords = 0;
-            let errorRecords = 0;
-
-            addLog(`Iniciando importação de ${totalRecords} registros (após remoção de ${duplicateInfo.length} duplicados)...`, 'info');
-            addLog(`Origem dos dados: "${origemDados}"`, 'info');
-
+            
+            const totalRegistros = filteredData.length;
+            let importados = 0;
+            let erros = 0;
+            
+            addLog(`🚀 Iniciando importação de ${totalRegistros} registros...`, 'info');
+            addLog(`📝 IDs sequenciais: do ${idAtual} até ${idAtual + totalRegistros - 1}`, 'success');
+            addLog(`📍 Origem dos dados: "${origemDados}"`, 'info');
+            
             for (let i = 0; i < filteredData.length; i++) {
                 const row = filteredData[i];
+                const idSequencial = idAtual + i;
                 
                 try {
                     const dataAtual = new Date();
@@ -814,9 +901,6 @@
                     const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
                     const ano = dataAtual.getFullYear();
                     const dataFormatada = `${dia}/${mes}/${ano}`;
-                    
-                    const timestamp = Date.now();
-                    const id_unico = `${timestamp}_${i+1}`;
                     
                     const nome = cleanValue(findColumnValue(row, "Seu nome:"));
                     const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
@@ -834,9 +918,10 @@
                     const meioVendas = cleanValue(findColumnValue(row, "Qual o meio de vendas de seu produto/serviço?"));
                     const redesSociais = cleanValue(findColumnValue(row, "Você pretende criar site ou redes sociais para seu negócio?"));
                     const timestampOriginal = cleanValue(findColumnValue(row, "Carimbo de data/hora"));
-
+                    
+                    // Criar objeto com ID sequencial
                     const cliente_data = {
-                        "id": id_unico,
+                        "id": idSequencial,
                         "nome": nome,
                         "cpf": cpf,
                         "cidade": cidade,
@@ -858,44 +943,50 @@
                         "timestampImportacao": new Date().toISOString(),
                         "origem": origemDados
                     };
-
+                    
+                    // Enviar para o Firebase usando PATCH com ID sequencial
                     const response = await fetch(FIREBASE_URL, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ [`cliente_${id_unico}`]: cliente_data })
+                        body: JSON.stringify({ [`cliente_${idSequencial}`]: cliente_data })
                     });
                     
                     if (response.ok) {
-                        importedRecords++;
-                        addLog(`✅ Registro ${i+1}/${totalRecords}: ${cliente_data.nome} - ${cliente_data.email} - Importado com sucesso`, 'success');
+                        importados++;
+                        addLog(`✅ [ID ${idSequencial}] ${cliente_data.nome} - ${cliente_data.email} - Importado com sucesso`, 'success');
                     } else {
-                        errorRecords++;
+                        erros++;
                         const errorText = await response.text();
-                        addLog(`❌ Erro ao importar registro ${i+1}: ${errorText}`, 'error');
+                        addLog(`❌ [ID ${idSequencial}] Erro ao importar: ${errorText}`, 'error');
                     }
                     
                 } catch (error) {
-                    errorRecords++;
+                    erros++;
                     addLog(`❌ Erro ao processar registro ${i+1}: ${error.message}`, 'error');
                 }
                 
-                const progress = Math.round(((i + 1) / totalRecords) * 100);
-                progressBar.style.width = `${progress}%`;
-                statusText.textContent = `Processando... ${i + 1}/${totalRecords} (${progress}%)`;
+                const progresso = Math.round(((i + 1) / totalRegistros) * 100);
+                progressBar.style.width = `${progresso}%`;
+                statusText.textContent = `Processando... ${i + 1}/${totalRegistros} (${progresso}%) - IDs: ${idAtual} a ${idAtual + i}`;
                 statusText.style.display = 'block';
                 
-                if (i % 10 === 0) {
+                if (i % 5 === 0) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
             
-            addLog(`\n🎉 Importação concluída!`, 'success');
-            addLog(`✅ Registros importados com sucesso: ${importedRecords}`, 'success');
-            addLog(`❌ Registros com erro: ${errorRecords}`, errorRecords > 0 ? 'error' : 'success');
-            addLog(`📊 Taxa de sucesso: ${Math.round((importedRecords / totalRecords) * 100)}%`, 'info');
-            addLog(`🚫 Duplicados ignorados: ${duplicateInfo.length}`, 'warning');
+            // Atualizar o próximo ID após importação
+            await buscarProximoIdSequencial();
             
-            statusText.textContent = `Importação concluída! ${importedRecords} registros importados, ${errorRecords} erros. Duplicados ignorados: ${duplicateInfo.length}`;
+            // Resumo final
+            addLog(`\n🎉 Importação concluída!`, 'success');
+            addLog(`✅ Registros importados com sucesso: ${importados}`, 'success');
+            addLog(`❌ Registros com erro: ${erros}`, erros > 0 ? 'error' : 'success');
+            addLog(`📊 Taxa de sucesso: ${Math.round((importados / totalRegistros) * 100)}%`, 'info');
+            addLog(`🚫 Duplicados ignorados: ${duplicateInfo.length}`, 'warning');
+            addLog(`🔢 Próximo ID disponível: ${proximoIdDisponivel}`, 'success');
+            
+            statusText.textContent = `Importação concluída! ${importados} registros importados (IDs ${idAtual} a ${idAtual + importados - 1}), ${erros} erros. Duplicados ignorados: ${duplicateInfo.length}`;
             importBtn.disabled = false;
             checkDuplicatesBtn.disabled = false;
             clearBtn.disabled = false;
@@ -919,6 +1010,7 @@
                     addLog('✅ Firebase limpo com sucesso!', 'success');
                     existingClients = {};
                     existingEmails.clear();
+                    await buscarProximoIdSequencial();
                 } else {
                     const errorText = await response.text();
                     addLog(`❌ Erro ao limpar Firebase: ${errorText}`, 'error');
@@ -944,9 +1036,14 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
         
+        // Inicialização
         addLog('Sistema iniciado. Aguardando arquivo Excel...', 'info');
-        addLog('NOVO: Sistema irá verificar emails duplicados antes da importação!', 'success');
+        addLog('✅ NOVO: IDs sequenciais automáticos (1, 2, 3, 4...)', 'success');
+        addLog('✅ NOVO: Verificação de duplicados por email', 'success');
         addLog('Passo a passo: 1) Carregue Excel → 2) Clique em "Verificar Duplicados" → 3) Confirme a lista → 4) Importe', 'info');
+        
+        // Buscar próximo ID ao iniciar
+        buscarProximoIdSequencial();
     </script>
 </body>
 </html>
