@@ -794,8 +794,11 @@
         }
         
         async function toggleStatus(clientId) {
-            const client = allClients.find(c => c.id === clientId);
-            if (!client) return;
+            console.log(clientId)
+            console.log(allClients)
+
+            const client = allClients.find(c => c.id == clientId);
+
             
             try {
                 const newStatus = !client.feito;
