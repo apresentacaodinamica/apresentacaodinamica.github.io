@@ -365,7 +365,6 @@
         <div style="text-align: center; margin-top: 20px;">
             <button class="btn" id="importBtn" disabled>Importar para Firebase</button>
             <button class="btn" id="checkDuplicatesBtn" disabled>Verificar Duplicados</button>
-            <button class="btn btn-danger" id="clearBtn">Limpar Firebase</button>
         </div>
         
         <div class="log" id="logContainer">
@@ -390,7 +389,7 @@
         const selectFileBtn = document.getElementById('selectFileBtn');
         const importBtn = document.getElementById('importBtn');
         const checkDuplicatesBtn = document.getElementById('checkDuplicatesBtn');
-        const clearBtn = document.getElementById('clearBtn');
+       // const clearBtn = document.getElementById('clearBtn');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
         const statusText = document.getElementById('statusText');
@@ -470,7 +469,7 @@
         
         fileInput.addEventListener('change', handleFileSelect);
         importBtn.addEventListener('click', importToFirebase);
-        clearBtn.addEventListener('click', clearFirebase);
+       // clearBtn.addEventListener('click', clearFirebase);
         
         // Função para buscar o maior ID existente e calcular o próximo ID sequencial
         async function buscarProximoIdSequencial() {
@@ -882,7 +881,7 @@
             progressContainer.style.display = 'block';
             importBtn.disabled = true;
             checkDuplicatesBtn.disabled = true;
-            clearBtn.disabled = true;
+          //  clearBtn.disabled = true;
             
             const totalRegistros = filteredData.length;
             let importados = 0;
@@ -990,7 +989,7 @@
             statusText.textContent = `Importação concluída! ${importados} registros importados (IDs ${idAtual} a ${idAtual + importados - 1}), ${erros} erros. Duplicados ignorados: ${duplicateInfo.length}`;
             importBtn.disabled = false;
             checkDuplicatesBtn.disabled = false;
-            clearBtn.disabled = false;
+          //  clearBtn.disabled = false;
         }
         
         // Função para limpar o Firebase
@@ -1001,7 +1000,7 @@
             
             try {
                 addLog('🗑️ Limpando dados do Firebase...', 'info');
-                clearBtn.disabled = true;
+               // clearBtn.disabled = true;
                 
                 const response = await fetch(FIREBASE_URL, {
                     method: 'DELETE'
@@ -1020,7 +1019,7 @@
             } catch (error) {
                 addLog(`❌ Erro ao limpar Firebase: ${error.message}`, 'error');
             } finally {
-                clearBtn.disabled = false;
+               // clearBtn.disabled = false;
             }
         }
         
