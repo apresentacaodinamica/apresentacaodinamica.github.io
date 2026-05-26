@@ -1045,8 +1045,7 @@
         }
 
 
-
-  function formatClientDisplay(client) {
+function formatClientDisplay(client) {
     const id = client.id || 'N/A';
     
     const nome = (client.nome || 'N/A')
@@ -1063,10 +1062,8 @@
         .replace(/\s+/g, ' ') // Mantém espaços normais na cidade
         .replace(/[^a-z0-9 ]/g, '');
     
-    return `${id}_${nome} : ${cidade}`;
+    return `${id}_${nome} - ${cidade}`;
 }
-
-
 
         
         function openModal(clientId) {
