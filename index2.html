@@ -377,10 +377,6 @@
 
     <script>
         // Configuração do Firebase
-        //const FIREBASE_URL = "https://appatividades-7450d-default-rtdb.firebaseio.com/clientes-logomarca.json";
-        
-               // const FIREBASE_URL = "https://logosmega-5609f-default-rtdb.firebaseio.com/clientes-logomarca.json";
-        
         const FIREBASE_URL = "https://logosmega-849cb-default-rtdb.firebaseio.com/clientes-logomarca.json";
 
         // Elementos da interface
@@ -389,7 +385,6 @@
         const selectFileBtn = document.getElementById('selectFileBtn');
         const importBtn = document.getElementById('importBtn');
         const checkDuplicatesBtn = document.getElementById('checkDuplicatesBtn');
-       // const clearBtn = document.getElementById('clearBtn');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
         const statusText = document.getElementById('statusText');
@@ -423,25 +418,25 @@
         let duplicateInfo = [];
         let proximoIdDisponivel = 1;
         
-        // Colunas obrigatórias
-        let requiredColumns = [
-            "Carimbo de data/hora",
-            "Seu nome:",
-            "CPF:",
-            "Cidade:",
-            "Qual o seu número de telefone (com DDD)?",
-            "Qual seu e-mail?",
-            "Sua empresa já tem um nome? Se sim, qual?",
-            "Já possui um nome fantasia a ser usado?",
-            "Qual o ramo da sua empresa?",
-            "Alguma sugestão de cor ou cores para sua logomarca?",
-            "Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)",
-            "O nome ou a marca da empresa tem alguma história?",
-            "Você tem alguma mensagem que deseja transmitir com sua marca?",
-            "Assinale os públicos que sua empresa atinge/deseja atingir:",
-            "Qual o meio de vendas de seu produto/serviço?",
-            "Você pretende criar site ou redes sociais para seu negócio?"
-        ];
+        // Mapeamento de colunas (antigas -> novas)
+        const columnMapping = {
+            'timestamp': ['Carimbo de data/hora', 'Carimbo de data/hora'],
+            'nome': ['Seu nome:', '1 - Seu nome:'],
+            'cpf': ['CPF:', '2 - CPF:'],
+            'cidade': ['Cidade:', '3 - Cidade:'],
+            'telefone': ['Qual o seu número de telefone (com DDD)?', '4 - Qual o seu número de telefone (com DDD)?'],
+            'email': ['Qual seu e-mail?', '5 - Qual seu e-mail?', 'Endereço de e-mail'],
+            'empresaNome': ['Sua empresa já tem um nome? Se sim, qual?', '6 - Sua empresa já tem um nome? Se sim, qual?'],
+            'nomeFantasia': ['Já possui um nome fantasia a ser usado?', '7 - Já possui um nome fantasia a ser usado?'],
+            'ramo': ['Qual o ramo da sua empresa?', '8 - Qual o ramo da sua empresa?'],
+            'cor': ['Alguma sugestão de cor ou cores para sua logomarca?', '10 - Alguma sugestão de cor ou cores para sua logomarca?'],
+            'caracteristicasEvitar': ['Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)', '11 - Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)'],
+            'historia': ['O nome ou a marca da empresa tem alguma história?', '12 - O nome ou a marca da empresa tem alguma história?'],
+            'mensagem': ['Você tem alguma mensagem que deseja transmitir com sua marca?', '13 - Você tem alguma mensagem que deseja transmitir com sua marca?'],
+            'publicoAlvo': ['Assinale os públicos que sua empresa atinge/deseja atingir:', '14 - Assinale os públicos que sua empresa atinge/deseja atingir:'],
+            'meioVendas': ['Qual o meio de vendas de seu produto/serviço?', '15 - Qual o meio de vendas de seu produto/serviço?'],
+            'redesSociais': ['Você pretende criar site ou redes sociais para seu negócio?', '16 - Você pretende criar site ou redes sociais para seu negócio?']
+        };
         
         // Event Listeners
         selectFileBtn.addEventListener('click', () => fileInput.click());
@@ -469,7 +464,6 @@
         
         fileInput.addEventListener('change', handleFileSelect);
         importBtn.addEventListener('click', importToFirebase);
-       // clearBtn.addEventListener('click', clearFirebase);
         
         // Função para buscar o maior ID existente e calcular o próximo ID sequencial
         async function buscarProximoIdSequencial() {
@@ -492,11 +486,9 @@
                         if (client && client.id) {
                             let idNumber = null;
                             
-                            // Tenta extrair o número do ID
                             if (typeof client.id === 'number') {
                                 idNumber = client.id;
                             } else if (typeof client.id === 'string') {
-                                // Verifica se é "cliente_123" ou apenas "123"
                                 if (client.id.includes('_')) {
                                     idNumber = parseInt(client.id.split('_').pop());
                                 } else {
@@ -514,7 +506,6 @@
                 proximoIdDisponivel = maxId + 1;
                 proximoIdSpan.textContent = proximoIdDisponivel;
                 
-                // Mostrar preview dos próximos IDs
                 nextIdPreview.textContent = proximoIdDisponivel;
                 nextIdPreview2.textContent = proximoIdDisponivel + 1;
                 nextIdPreview3.textContent = proximoIdDisponivel + 2;
@@ -533,7 +524,7 @@
             }
         }
         
-        // Função para buscar todos os clientes existentes (para validação de email)
+        // Função para buscar todos os clientes existentes
         async function fetchExistingClients() {
             addLog('Buscando clientes existentes no Firebase para validação de duplicados...', 'info');
             
@@ -566,6 +557,88 @@
             }
         }
         
+        // Função para encontrar o valor de uma coluna com base no mapeamento
+        function findColumnValue(row, fieldName) {
+            // Pega as possíveis variações de nome da coluna
+            const possibleNames = columnMapping[fieldName] || [fieldName];
+            
+            // Primeiro, tenta encontrar a coluna exata
+            for (const name of possibleNames) {
+                if (row[name] !== undefined && row[name] !== null && row[name] !== '') {
+                    return row[name];
+                }
+            }
+            
+            // Se não encontrou, tenta busca parcial (ignorando espaços e quebras de linha)
+            const normalizedTarget = fieldName.toLowerCase();
+            
+            for (const [key, value] of Object.entries(row)) {
+                // Normaliza a chave para comparação
+                const normalizedKey = key.toLowerCase()
+                    .replace(/\s+/g, ' ')
+                    .replace(/[\r\n]+/g, ' ')
+                    .trim();
+                
+                // Verifica se a chave contém o campo desejado
+                if (normalizedKey.includes(normalizedTarget) || 
+                    normalizedKey.includes(fieldName.toLowerCase())) {
+                    return value;
+                }
+                
+                // Verificações específicas para cada campo
+                if (fieldName === 'nome' && (normalizedKey.includes('seu nome') || normalizedKey.includes('1 - seu nome'))) {
+                    return value;
+                }
+                if (fieldName === 'cpf' && (normalizedKey.includes('cpf') || normalizedKey.includes('2 - cpf'))) {
+                    return value;
+                }
+                if (fieldName === 'cidade' && (normalizedKey.includes('cidade') || normalizedKey.includes('3 - cidade'))) {
+                    return value;
+                }
+                if (fieldName === 'telefone' && (normalizedKey.includes('telefone') || normalizedKey.includes('4 - qual'))) {
+                    return value;
+                }
+                if (fieldName === 'email' && (normalizedKey.includes('e-mail') || normalizedKey.includes('email') || normalizedKey.includes('5 - qual'))) {
+                    return value;
+                }
+                if (fieldName === 'empresaNome' && (normalizedKey.includes('empresa') || normalizedKey.includes('6 - sua'))) {
+                    return value;
+                }
+                if (fieldName === 'nomeFantasia' && (normalizedKey.includes('fantasia') || normalizedKey.includes('7 - já'))) {
+                    return value;
+                }
+                if (fieldName === 'ramo' && (normalizedKey.includes('ramo') || normalizedKey.includes('8 - qual'))) {
+                    return value;
+                }
+                if (fieldName === 'cor' && (normalizedKey.includes('cor') || normalizedKey.includes('10 - alguma'))) {
+                    return value;
+                }
+                if (fieldName === 'caracteristicasEvitar' && (normalizedKey.includes('característica') || normalizedKey.includes('caracteristica') || normalizedKey.includes('11 - alguma'))) {
+                    return value;
+                }
+                if (fieldName === 'historia' && (normalizedKey.includes('história') || normalizedKey.includes('historia') || normalizedKey.includes('12 - o nome'))) {
+                    return value;
+                }
+                if (fieldName === 'mensagem' && (normalizedKey.includes('mensagem') || normalizedKey.includes('13 - você'))) {
+                    return value;
+                }
+                if (fieldName === 'publicoAlvo' && (normalizedKey.includes('público') || normalizedKey.includes('publico') || normalizedKey.includes('14 - assinale'))) {
+                    return value;
+                }
+                if (fieldName === 'meioVendas' && (normalizedKey.includes('meio de vendas') || normalizedKey.includes('15 - qual'))) {
+                    return value;
+                }
+                if (fieldName === 'redesSociais' && (normalizedKey.includes('redes sociais') || normalizedKey.includes('16 - você'))) {
+                    return value;
+                }
+                if (fieldName === 'timestamp' && normalizedKey.includes('carimbo')) {
+                    return value;
+                }
+            }
+            
+            return null;
+        }
+        
         // Função para verificar duplicados e filtrar dados
         async function checkForDuplicates() {
             if (!excelData || excelData.length === 0) {
@@ -575,42 +648,36 @@
             
             addLog('Verificando duplicados por email...', 'info');
             
-            // Buscar clientes existentes e próximo ID
             await fetchExistingClients();
             await buscarProximoIdSequencial();
             
-            // Filtrar dados
             filteredData = [];
             duplicateInfo = [];
             
             for (let i = 0; i < excelData.length; i++) {
                 const row = excelData[i];
-                const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
-                const nome = cleanValue(findColumnValue(row, "Seu nome:"));
+                const email = cleanValue(findColumnValue(row, 'email'));
+                const nome = cleanValue(findColumnValue(row, 'nome'));
                 
                 const emailNormalizado = email.toLowerCase().trim();
                 
                 if (existingEmails.has(emailNormalizado) && email !== "N/A") {
-                    // Duplicado encontrado
                     duplicateInfo.push({
                         index: i + 1,
                         nome: nome,
                         email: email,
-                        cpf: cleanValue(findColumnValue(row, "CPF:"))
+                        cpf: cleanValue(findColumnValue(row, 'cpf'))
                     });
                     addLog(`⚠️ Duplicado detectado: ${nome} (${email}) - será removido da importação`, 'warning');
                 } else {
-                    // Não duplicado, adicionar à lista filtrada
                     filteredData.push(row);
                 }
             }
             
-            // Atualizar estatísticas
             totalRecords.textContent = excelData.length;
             validRecords.textContent = filteredData.length;
             duplicateRecords.textContent = duplicateInfo.length;
             
-            // Mostrar aviso de duplicados
             if (duplicateInfo.length > 0) {
                 duplicateWarning.style.display = 'block';
                 duplicateList.innerHTML = '';
@@ -628,7 +695,6 @@
                 addLog(`✅ Nenhum duplicado encontrado! ${filteredData.length} registros prontos para importação.`, 'success');
             }
             
-            // Habilitar botão de importar se houver dados filtrados
             importBtn.disabled = (filteredData.length === 0);
             
             if (filteredData.length === 0 && duplicateInfo.length > 0) {
@@ -717,21 +783,31 @@
                     return;
                 }
                 
-                const headers = jsonData[0].filter(header => header && header.trim() !== '');
+                // Normaliza os headers (remove quebras de linha extras)
+                const headers = jsonData[0]
+                    .filter(header => header && header.trim() !== '')
+                    .map(header => header.replace(/[\r\n]+/g, ' ').trim());
+                
                 excelColumns = headers;
                 
                 addLog(`Colunas encontradas: ${headers.length}`, 'info');
                 showColumnsPreview(headers);
                 
-                const missingColumns = requiredColumns.filter(col => 
-                    !headers.some(header => header.trim() === col.trim())
-                );
+                // Verifica se as colunas essenciais existem
+                const essentialFields = ['nome', 'email', 'cidade', 'telefone'];
+                const missingFields = [];
                 
-                if (missingColumns.length > 0) {
-                    addLog(`AVISO: Algumas colunas necessárias não foram encontradas:`, 'warning');
-                    missingColumns.forEach(col => addLog(`  - "${col}"`, 'warning'));
+                for (const field of essentialFields) {
+                    const value = findColumnValue(Object.fromEntries(headers.map(h => [h, ''])), field);
+                    if (value === null) {
+                        missingFields.push(field);
+                    }
+                }
+                
+                if (missingFields.length > 0) {
+                    addLog(`AVISO: Alguns campos essenciais podem não ter sido encontrados: ${missingFields.join(', ')}`, 'warning');
                 } else {
-                    addLog('Todas as colunas necessárias foram encontradas no Excel.', 'success');
+                    addLog('Todas as colunas essenciais foram identificadas no Excel.', 'success');
                 }
                 
                 // Processar dados
@@ -771,15 +847,16 @@
                 addLog(`Excel analisado com sucesso. ${excelData.length} registros encontrados.`, 'success');
                 
                 if (excelData.length > 0) {
-                    addLog('Exemplo do primeiro registro:', 'info');
-                    Object.entries(excelData[0]).forEach(([key, value]) => {
-                        if (value && value.toString().trim() !== '') {
-                            addLog(`  "${key}": "${value}"`, 'info');
-                        }
-                    });
+                    addLog('Exemplo do primeiro registro processado:', 'info');
+                    const primeiroRegistro = excelData[0];
+                    
+                    // Mostra os campos mapeados
+                    addLog(`  Nome: ${cleanValue(findColumnValue(primeiroRegistro, 'nome'))}`, 'info');
+                    addLog(`  Email: ${cleanValue(findColumnValue(primeiroRegistro, 'email'))}`, 'info');
+                    addLog(`  Cidade: ${cleanValue(findColumnValue(primeiroRegistro, 'cidade'))}`, 'info');
+                    addLog(`  Telefone: ${cleanValue(findColumnValue(primeiroRegistro, 'telefone'))}`, 'info');
                 }
                 
-                // Habilitar botão de verificar duplicados
                 checkDuplicatesBtn.disabled = false;
                 importBtn.disabled = true;
                 
@@ -795,16 +872,9 @@
             columnsList.innerHTML = '';
             
             headers.forEach(header => {
-                const isRequired = requiredColumns.some(req => req.trim() === header.trim());
                 const columnItem = document.createElement('div');
                 columnItem.className = 'column-item';
-                
-                if (isRequired) {
-                    columnItem.innerHTML = `${header} <span class="required">*</span>`;
-                } else {
-                    columnItem.textContent = header;
-                }
-                
+                columnItem.textContent = header;
                 columnsList.appendChild(columnItem);
             });
             
@@ -828,32 +898,21 @@
             return cleaned || "N/A";
         }
         
-        // Função para encontrar coluna por nome
-        function findColumnValue(row, columnName) {
-            if (row[columnName]) {
-                return row[columnName];
-            }
-            
-            const normalizedTarget = columnName.toLowerCase().trim();
-            
-            for (const [key, value] of Object.entries(row)) {
-                if (key.toLowerCase().trim() === normalizedTarget) {
-                    return value;
-                }
-            }
-            
-            return null;
-        }
-        
         // Função para encontrar cidade
         function findCidadeValue(row) {
-            const cidadeVariations = ["Cidade:", "Cidaade", "Cidade", "cidade"];
+            const cidadeVariations = ['cidade', '3 - Cidade:'];
             
             for (const variation of cidadeVariations) {
                 const value = findColumnValue(row, variation);
                 if (value && value !== "N/A" && value.trim() !== "") {
                     return cleanValue(value);
                 }
+            }
+            
+            // Tenta buscar diretamente
+            const cidade = cleanValue(findColumnValue(row, 'cidade'));
+            if (cidade !== "N/A") {
+                return cidade;
             }
             
             addLog(`⚠️ Campo cidade não encontrado, usando origem "${origemDados}" como fallback`, 'warning');
@@ -873,7 +932,6 @@
                 }
             }
             
-            // Buscar o próximo ID novamente antes de importar (garantia)
             await buscarProximoIdSequencial();
             
             let idAtual = proximoIdDisponivel;
@@ -881,7 +939,6 @@
             progressContainer.style.display = 'block';
             importBtn.disabled = true;
             checkDuplicatesBtn.disabled = true;
-          //  clearBtn.disabled = true;
             
             const totalRegistros = filteredData.length;
             let importados = 0;
@@ -902,24 +959,25 @@
                     const ano = dataAtual.getFullYear();
                     const dataFormatada = `${dia}/${mes}/${ano}`;
                     
-                    const nome = cleanValue(findColumnValue(row, "Seu nome:"));
-                    const email = cleanValue(findColumnValue(row, "Qual seu e-mail?"));
+                    // Usa o mapeamento para extrair os valores
+                    const nome = cleanValue(findColumnValue(row, 'nome'));
+                    const email = cleanValue(findColumnValue(row, 'email'));
                     const cidade = findCidadeValue(row);
-                    const telefone = cleanValue(findColumnValue(row, "Qual o seu número de telefone (com DDD)?"));
-                    const cpf = cleanValue(findColumnValue(row, "CPF:"));
-                    const empresaNome = cleanValue(findColumnValue(row, "Sua empresa já tem um nome? Se sim, qual?"));
-                    const nomeFantasia = cleanValue(findColumnValue(row, "Já possui um nome fantasia a ser usado?"));
-                    const ramo = cleanValue(findColumnValue(row, "Qual o ramo da sua empresa?"));
-                    const cor = cleanValue(findColumnValue(row, "Alguma sugestão de cor ou cores para sua logomarca?"));
-                    const caracteristicasEvitar = cleanValue(findColumnValue(row, "Alguma característica que você gostaria que sua logomarca não tivesse? (Cores, formatos)"));
-                    const historia = cleanValue(findColumnValue(row, "O nome ou a marca da empresa tem alguma história?"));
-                    const mensagem = cleanValue(findColumnValue(row, "Você tem alguma mensagem que deseja transmitir com sua marca?"));
-                    const publicoAlvo = cleanValue(findColumnValue(row, "Assinale os públicos que sua empresa atinge/deseja atingir:"));
-                    const meioVendas = cleanValue(findColumnValue(row, "Qual o meio de vendas de seu produto/serviço?"));
-                    const redesSociais = cleanValue(findColumnValue(row, "Você pretende criar site ou redes sociais para seu negócio?"));
-                    const timestampOriginal = cleanValue(findColumnValue(row, "Carimbo de data/hora"));
+                    const telefone = cleanValue(findColumnValue(row, 'telefone'));
+                    const cpf = cleanValue(findColumnValue(row, 'cpf'));
+                    const empresaNome = cleanValue(findColumnValue(row, 'empresaNome'));
+                    const nomeFantasia = cleanValue(findColumnValue(row, 'nomeFantasia'));
+                    const ramo = cleanValue(findColumnValue(row, 'ramo'));
+                    const cor = cleanValue(findColumnValue(row, 'cor'));
+                    const caracteristicasEvitar = cleanValue(findColumnValue(row, 'caracteristicasEvitar'));
+                    const historia = cleanValue(findColumnValue(row, 'historia'));
+                    const mensagem = cleanValue(findColumnValue(row, 'mensagem'));
+                    const publicoAlvo = cleanValue(findColumnValue(row, 'publicoAlvo'));
+                    const meioVendas = cleanValue(findColumnValue(row, 'meioVendas'));
+                    const redesSociais = cleanValue(findColumnValue(row, 'redesSociais'));
+                    const timestampOriginal = cleanValue(findColumnValue(row, 'timestamp'));
                     
-                    // Criar objeto com ID sequencial
+                    // Criar objeto com ID sequencial (ESTRUTURA MANTIDA)
                     const cliente_data = {
                         "id": idSequencial,
                         "nome": nome,
@@ -975,10 +1033,8 @@
                 }
             }
             
-            // Atualizar o próximo ID após importação
             await buscarProximoIdSequencial();
             
-            // Resumo final
             addLog(`\n🎉 Importação concluída!`, 'success');
             addLog(`✅ Registros importados com sucesso: ${importados}`, 'success');
             addLog(`❌ Registros com erro: ${erros}`, erros > 0 ? 'error' : 'success');
@@ -989,38 +1045,6 @@
             statusText.textContent = `Importação concluída! ${importados} registros importados (IDs ${idAtual} a ${idAtual + importados - 1}), ${erros} erros. Duplicados ignorados: ${duplicateInfo.length}`;
             importBtn.disabled = false;
             checkDuplicatesBtn.disabled = false;
-          //  clearBtn.disabled = false;
-        }
-        
-        // Função para limpar o Firebase
-        async function clearFirebase() {
-            if (!confirm('⚠️ ATENÇÃO: Tem certeza que deseja limpar TODOS os dados do Firebase?\n\nEsta ação não pode ser desfeita e removerá todos os registros de clientes de logomarca.')) {
-                return;
-            }
-            
-            try {
-                addLog('🗑️ Limpando dados do Firebase...', 'info');
-               // clearBtn.disabled = true;
-                
-                const response = await fetch(FIREBASE_URL, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    addLog('✅ Firebase limpo com sucesso!', 'success');
-                    existingClients = {};
-                    existingEmails.clear();
-                    await buscarProximoIdSequencial();
-                } else {
-                    const errorText = await response.text();
-                    addLog(`❌ Erro ao limpar Firebase: ${errorText}`, 'error');
-                }
-                
-            } catch (error) {
-                addLog(`❌ Erro ao limpar Firebase: ${error.message}`, 'error');
-            } finally {
-               // clearBtn.disabled = false;
-            }
         }
         
         // Função para adicionar logs
@@ -1038,8 +1062,8 @@
         
         // Inicialização
         addLog('Sistema iniciado. Aguardando arquivo Excel...', 'info');
-        addLog('✅ NOVO: IDs sequenciais automáticos (1, 2, 3, 4...)', 'success');
-        addLog('✅ NOVO: Verificação de duplicados por email', 'success');
+        addLog('✅ NOVO: Compatível com as novas colunas da planilha', 'success');
+        addLog('✅ NOVO: Mapeamento automático de colunas antigas e novas', 'success');
         addLog('Passo a passo: 1) Carregue Excel → 2) Clique em "Verificar Duplicados" → 3) Confirme a lista → 4) Importe', 'info');
         
         // Buscar próximo ID ao iniciar
