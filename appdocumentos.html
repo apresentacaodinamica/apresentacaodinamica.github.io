@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a3d62">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MedDoc">
+<meta name="mobile-web-app-capable" content="yes">
+<title>MedDoc · Gestão de Documentos</title>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+        --primary: #0a3d62;
+        --primary-light: #1e5a8a;
+        --primary-hover: #0c4a75;
+        --accent: #1e6091;
+        --bg: #f4f6f9;
+        --surface: #ffffff;
+        --border: #dfe4ea;
+        --text: #1e272e;
+        --text-muted: #57606f;
+        --text-light: #808e9b;
+        --success: #1e7e5a;
+        --success-bg: #e6f3ee;
+        --warning: #b8860b;
+        --warning-bg: #fdf6e3;
+        --danger: #a93226;
+        --danger-bg: #fbeae8;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    html, body {
+        height: 100%;
+        width: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.4;
+        -webkit-font-smoothing: antialiased;
+        overscroll-behavior-y: none;
+        overflow: hidden;
+        position: fixed;
+    }
+    input, select, textarea, button {
+        font-family: inherit;
+        font-size: 16px; /* evita zoom automático no iOS */
+    }
+
+    /* ---------- LOGIN ---------- */
+    .login-screen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(160deg, #0a3d62 0%, #0c4a75 60%, #1e5a8a 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        padding-top: calc(24px + var(--safe-top));
+        z-index: 1000;
+        color: #fff;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+    .login-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .login-logo {
+        width: 72px;
+        height: 72px;
+        background: #fff;
+        color: var(--primary);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 32px;
+        margin-bottom: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .login-title {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+    }
+    .login-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.7);
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        margin-bottom: 36px;
+    }
+    .login-card {
+        width: 100%;
+        max-width: 380px;
+        background: #fff;
+        border-radius: 18px;
+        padding: 24px 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        color: var(--text);
+    }
+    .login-card h2 {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .login-card p {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+    .login-card label {
+        display: block;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+        margin-top: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .login-card label:first-of-type { margin-top: 0; }
+    .login-card input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 16px;
+        color: var(--text);
+        background: #fbfcfd;
+    }
+    .login-card input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(30,90,138,0.10);
+    }
+    .login-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .login-btn:active { background: var(--primary-hover); }
+    .login-error {
+        color: var(--danger);
+        font-size: 12.5px;
+        margin-top: 12px;
+        text-align: center;
+        font-weight: 600;
+        min-height: 18px;
+    }
+    .login-hint {
+        font-size: 11.5px;
+        color: rgba(255,255,255,0.55);
+        margin-top: 22px;
+        text-align: center;
+        max-width: 320px;
+    }
+
+    /* ---------- APP SHELL ---------- */
+    .app-shell {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+    .app-shell.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ---------- HEADER ---------- */
+    .app-header {
+        flex-shrink: 0;
+        height: calc(56px + var(--safe-top));
+        padding-top: var(--safe-top);
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        padding-left: 8px;
+        padding-right: 8px;
+        position: relative;
+        z-index: 40;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .menu-btn, .header-action {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    .menu-btn:active, .header-action:active { background: rgba(255,255,255,0.12); }
+    .menu-btn svg, .header-action svg { width: 24px; height: 24px; }
+    .app-title {
+        flex: 1;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ---------- BODY ---------- */
+    .app-body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--bg);
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(24px + var(--safe-bottom));
+    }
+    .screen {
+        display: none;
+        padding: 16px;
+        max-width: 720px;
+        margin: 0 auto;
+        animation: fadeIn 0.18s ease;
+    }
+    .screen.active { display: block; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- DRAWER ---------- */
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,20,35,0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+        z-index: 50;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .drawer {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 290px;
+        max-width: 85vw;
+        background: #ffffff;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+        background: var(--primary);
+        color: #fff;
+        padding: calc(24px + var(--safe-top)) 20px 20px;
+    }
+    .drawer-brand {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .drawer-brand-mark {
+        width: 32px; height: 32px;
+        background: #fff;
+        color: var(--primary);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800;
+        font-size: 15px;
+    }
+    .drawer-sub {
+        font-size: 11px;
+        color: rgba(255,255,255,0.65);
+        margin-top: 6px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    .drawer-user {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .avatar {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .drawer-user-name { font-weight: 600; font-size: 13.5px; color: var(--text); }
+    .drawer-user-role { font-size: 11.5px; color: var(--text-muted); }
+
+    .drawer-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 20px;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 14.5px;
+        font-weight: 500;
+        border-left: 3px solid transparent;
+        transition: background 0.12s;
+    }
+    .nav-item:active { background: #f0f3f7; }
+    .nav-item.active {
+        background: #eef3f8;
+        color: var(--primary);
+        border-left-color: var(--primary);
+        font-weight: 600;
+    }
+    .nav-item svg { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; }
+    .nav-item.active svg { color: var(--primary); }
+    .nav-section-label {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--text-light);
+        padding: 14px 20px 6px;
+        font-weight: 700;
+    }
+    .drawer-footer {
+        padding: 14px 20px;
+        padding-bottom: calc(14px + var(--safe-bottom));
+        border-top: 1px solid var(--border);
+        font-size: 11.5px;
+        color: var(--text-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logout-btn {
+        background: transparent;
+        border: none;
+        color: var(--danger);
+        font-weight: 600;
+        font-size: 12px;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+    .logout-btn:active { background: var(--danger-bg); }
+
+    /* ---------- COMPONENTES ---------- */
+    .page-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        letter-spacing: -0.3px;
+    }
+    .page-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 12px;
+        letter-spacing: 0.2px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .card-title .count-badge {
+        background: var(--primary);
+        color: #fff;
+        font-size: 11px;
+        padding: 3px 9px;
+        border-radius: 10px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    label {
+        display: block;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+        margin-top: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    label:first-child { margin-top: 0; }
+    input, select, textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 16px;
+        color: var(--text);
+        background: #fbfcfd;
+        transition: border-color 0.15s, background 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(30,90,138,0.10);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    select { cursor: pointer; }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 18px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, opacity 0.15s;
+        letter-spacing: 0.2px;
+        min-height: 46px;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary {
+        background: #fff;
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: #f4f6f9; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-block { width: 100%; }
+    .btn-sm { padding: 8px 12px; font-size: 13px; border-radius: 8px; min-height: 36px; }
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+    .btn-row .btn { flex: 1; }
+
+    /* ---------- PROCESS FLOW ---------- */
+    .process-flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 18px;
+        padding: 8px 0 4px;
+    }
+    .process-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        width: 78px;
+    }
+    .process-dot {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #eef1f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text-muted);
+        border: 2px solid var(--border);
+        transition: all 0.18s;
+    }
+    .process-step.selected .process-dot {
+        border-color: var(--primary);
+        background: #e8f0f8;
+        color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(30,90,138,0.15);
+    }
+    .process-step.assigned .process-dot {
+        background: var(--warning-bg);
+        border-color: var(--warning);
+        color: var(--warning);
+    }
+    .process-step.signed .process-dot {
+        background: var(--success-bg);
+        border-color: var(--success);
+        color: var(--success);
+    }
+    .process-step.selected.assigned .process-dot,
+    .process-step.selected.signed .process-dot {
+        box-shadow: 0 0 0 3px rgba(30,90,138,0.20);
+    }
+    .process-label {
+        font-size: 11px;
+        text-align: center;
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-weight: 500;
+        line-height: 1.25;
+        word-break: break-word;
+    }
+    .process-step.selected .process-label { color: var(--primary); font-weight: 700; }
+
+    /* ---------- DOC LIST ---------- */
+    .doc-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        gap: 10px;
+    }
+    .doc-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .doc-item:first-child { padding-top: 0; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .doc-meta { font-size: 11.5px; color: var(--text-light); margin-top: 3px; }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .status.pending { background: var(--warning-bg); color: var(--warning); }
+    .status.signed { background: var(--success-bg); color: var(--success); }
+
+    .empty-state {
+        text-align: center;
+        padding: 28px 12px;
+        color: var(--text-light);
+        font-size: 13px;
+    }
+    .empty-state svg {
+        width: 40px; height: 40px;
+        color: var(--border);
+        margin-bottom: 10px;
+    }
+
+    /* ---------- SIGNATURE ---------- */
+    .signature-pad {
+        width: 100%;
+        height: 180px;
+        border: 1.5px dashed #c5cdd8;
+        border-radius: 12px;
+        background: #fbfcfd;
+        cursor: crosshair;
+        touch-action: none;
+        display: block;
+    }
+    .signature-empty-hint {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-light);
+        font-size: 13px;
+        pointer-events: none;
+        letter-spacing: 0.3px;
+    }
+    .signature-wrap { position: relative; }
+
+    /* ---------- MODAL ---------- */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,20,35,0.5);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+        width: 100%;
+        max-width: 520px;
+        background: #fff;
+        border-radius: 18px 18px 0 0;
+        padding: 20px;
+        padding-bottom: calc(20px + var(--safe-bottom));
+        transform: translateY(100%);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-handle {
+        width: 40px; height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        margin: 0 auto 16px;
+    }
+    .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .modal-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+
+    /* ---------- TOAST ---------- */
+    .toast {
+        position: fixed;
+        bottom: calc(24px + var(--safe-bottom));
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: #1a2233;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 500;
+        z-index: 200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        max-width: calc(100vw - 40px);
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ---------- LOG ---------- */
+    .log-item {
+        padding: 11px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text);
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-time {
+        font-size: 11px;
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 3px;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 0;
+        font-size: 13.5px;
+        border-bottom: 1px solid var(--border);
+        gap: 12px;
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-row .label { color: var(--text-muted); font-weight: 500; }
+    .meta-row .value { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
+
+    /* Scrollbar discreto */
+    .app-body::-webkit-scrollbar, .drawer-nav::-webkit-scrollbar { width: 4px; }
+    .app-body::-webkit-scrollbar-thumb, .drawer-nav::-webkit-scrollbar-thumb {
+        background: #c5cdd8; border-radius: 4px;
+    }
+
+    .screen-indicator {
+        font-size: 11px;
+        color: var(--text-light);
+        text-align: center;
+        padding: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    /* Ajustes para telas largas (tablet, desktop) */
+    @media (min-width: 768px) {
+        .screen { padding: 24px; }
+        .page-title { font-size: 22px; }
+        .process-step { width: 92px; }
+        .process-dot { width: 60px; height: 60px; font-size: 18px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN
+     ============================================================ -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-logo">M</div>
+    <div class="login-title">MedDoc</div>
+    <div class="login-sub">Gestão de Documentos</div>
+
+    <div class="login-card">
+        <h2>Acesso ao sistema</h2>
+        <p>Entre com suas credenciais institucionais.</p>
+        <label for="loginUser">Usuário</label>
+        <input type="text" id="loginUser" autocomplete="username" placeholder="ex: ana.souza" value="ana.souza">
+        <label for="loginPass">Senha</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" value="meddoc">
+        <button class="login-btn" id="loginBtn">Entrar</button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+
+    <div class="login-hint">POC · Ambiente de demonstração. Qualquer usuário/senha é aceito.</div>
+</div>
+
+<!-- ============================================================
+     APP
+     ============================================================ -->
+<div class="app-shell" id="appShell">
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+        <div class="app-title" id="headerTitle">Pacientes</div>
+        <div class="header-action" id="headerAction"></div>
+    </header>
+
+    <!-- BODY -->
+    <main class="app-body" id="appBody">
+
+        <!-- ========== PACIENTES ========== -->
+        <div class="screen active" id="screen-patients">
+            <div class="page-title">Pacientes</div>
+            <div class="page-subtitle">Selecione um paciente para ver o fluxo</div>
+
+            <div class="card">
+                <label>Paciente</label>
+                <select id="patientSelect"></select>
+                <div style="margin-top: 14px;" id="patientSummary"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    Etapas do paciente
+                    <span class="count-badge" id="processCount">0</span>
+                </div>
+                <div class="process-flow" id="processFlow"></div>
+            </div>
+
+            <div class="card" id="processDocsCard">
+                <div class="card-title">
+                    Documentos da etapa
+                    <button class="btn btn-secondary btn-sm" id="allocateBtn">Vincular</button>
+                </div>
+                <div id="processDocsList"></div>
+            </div>
+        </div>
+
+        <!-- ========== TEMPLATES ========== -->
+        <div class="screen" id="screen-templates">
+            <div class="page-title">Templates</div>
+            <div class="page-subtitle">Modelos de documentos com campos variáveis</div>
+
+            <div class="card">
+                <div class="card-title">Novo template</div>
+                <label>Nome do documento</label>
+                <input type="text" id="templateName" placeholder="Ex: Termo de consentimento">
+                <label>Texto padrão</label>
+                <textarea id="templateText" placeholder="Use {{campo}} para variáveis"></textarea>
+                <label>Campos variáveis (separados por vírgula)</label>
+                <input type="text" id="templateFields" placeholder="nome, prontuario, data">
+                <div class="btn-row">
+                    <button class="btn btn-secondary" id="clearTemplateBtn">Limpar</button>
+                    <button class="btn btn-primary" id="saveTemplateBtn">Salvar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    Templates cadastrados
+                    <span class="count-badge" id="templateCount">0</span>
+                </div>
+                <div id="templateList"></div>
+            </div>
+        </div>
+
+        <!-- ========== ASSINATURA ========== -->
+        <div class="screen" id="screen-signature">
+            <div class="page-title">Assinatura</div>
+            <div class="page-subtitle">Assine o documento selecionado</div>
+
+            <div class="card" id="signatureDocCard">
+                <div class="empty-state" id="signatureEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <div>Nenhum documento em assinatura</div>
+                    <div style="margin-top: 8px; font-size: 12px;">Selecione um documento pendente na tela Pacientes</div>
+                </div>
+                <div id="signatureDocContent" style="display: none;">
+                    <div class="meta-row">
+                        <span class="label">Documento</span>
+                        <span class="value" id="sigDocName">—</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="label">Paciente</span>
+                        <span class="value" id="sigDocPatient">—</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="label">Etapa</span>
+                        <span class="value" id="sigDocProcess">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="signaturePadCard" style="display: none;">
+                <div class="card-title">Assinatura do paciente</div>
+                <div class="signature-wrap">
+                    <canvas id="signatureCanvas" class="signature-pad"></canvas>
+                    <div class="signature-empty-hint" id="signatureHint">Assine aqui</div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" id="clearSignatureBtn">Limpar</button>
+                    <button class="btn btn-primary" id="signAndSendBtn">Assinar e enviar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ENVIOS ========== -->
+        <div class="screen" id="screen-sends">
+            <div class="page-title">Envios</div>
+            <div class="page-subtitle">Histórico de documentos enviados ao Tasy</div>
+
+            <div class="card">
+                <div class="card-title">
+                    Histórico
+                    <button class="btn btn-secondary btn-sm" id="clearLogBtn">Limpar</button>
+                </div>
+                <div id="sendLogList"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    PDFs gerados
+                    <span class="count-badge" id="pdfCount">0</span>
+                </div>
+                <div id="pdfList"></div>
+            </div>
+        </div>
+
+        <!-- ========== SOBRE ========== -->
+        <div class="screen" id="screen-about">
+            <div class="page-title">Sobre</div>
+            <div class="page-subtitle">Informações do sistema</div>
+            <div class="card">
+                <div class="meta-row"><span class="label">Versão</span><span class="value">1.0.0 POC</span></div>
+                <div class="meta-row"><span class="label">Módulo</span><span class="value">Gestão de Documentos</span></div>
+                <div class="meta-row"><span class="label">Integração</span><span class="value">Tasy (mock)</span></div>
+                <div class="meta-row"><span class="label">Armazenamento</span><span class="value">Memória local</span></div>
+                <div class="meta-row"><span class="label">Geração de PDF</span><span class="value">pdf-lib</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Fluxo</div>
+                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+                    1. Cadastre um template de documento com campos variáveis.<br>
+                    2. Selecione um paciente e visualize as etapas do Tasy.<br>
+                    3. Vincule um template a uma etapa específica.<br>
+                    4. O paciente assina no dispositivo.<br>
+                    5. O PDF é gerado e enviado ao Tasy.
+                </div>
+            </div>
+        </div>
+
+        <div class="screen-indicator">MedDoc · POC</div>
+    </main>
+
+    <!-- DRAWER -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside class="drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-brand">
+                <div class="drawer-brand-mark">M</div>
+                MedDoc
+            </div>
+            <div class="drawer-sub">Gestão de Documentos</div>
+        </div>
+        <div class="drawer-user">
+            <div class="avatar" id="drawerAvatar">AS</div>
+            <div>
+                <div class="drawer-user-name" id="drawerUserName">Dra. Ana Souza</div>
+                <div class="drawer-user-role" id="drawerUserRole">Enfermeira · COREN 12345</div>
+            </div>
+        </div>
+        <nav class="drawer-nav" id="drawerNav">
+            <div class="nav-section-label">Atendimento</div>
+            <div class="nav-item active" data-screen="patients">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Pacientes
+            </div>
+            <div class="nav-item" data-screen="signature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                    <path d="M2 2l7.586 7.586"/>
+                    <circle cx="11" cy="11" r="2"/>
+                </svg>
+                Assinatura
+            </div>
+            <div class="nav-section-label">Configuração</div>
+            <div class="nav-item" data-screen="templates">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Templates
+            </div>
+            <div class="nav-item" data-screen="sends">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                Envios
+            </div>
+            <div class="nav-section-label">Sistema</div>
+            <div class="nav-item" data-screen="about">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                Sobre
+            </div>
+        </nav>
+        <div class="drawer-footer">
+            <span>POC · Tasy Mock · v1.0</span>
+            <button class="logout-btn" id="logoutBtn">Sair</button>
+        </div>
+    </aside>
+
+    <!-- MODAL ALOCAR -->
+    <div class="modal-overlay" id="allocateModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Vincular documento</div>
+            <div class="modal-sub" id="modalProcessInfo">—</div>
+            <label>Template</label>
+            <select id="modalTemplateSelect"></select>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="cancelModalBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmAllocateBtn">Vincular</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ============================================================
+    // SESSÃO / LOGIN
+    // ============================================================
+    const SESSION_KEY = 'meddoc.session';
+
+    function loadSession() {
+        try {
+            const raw = localStorage.getItem(SESSION_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+    }
+    function saveSession(session) {
+        try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+    }
+    function clearSession() {
+        try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    }
+
+    function deriveInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function applySessionToUI(session) {
+        if (!session) return;
+        const initials = deriveInitials(session.displayName || session.login);
+        $('#drawerAvatar').textContent = initials;
+        $('#drawerUserName').textContent = session.displayName || session.login;
+        $('#drawerUserRole').textContent = session.role || 'Operador';
+    }
+
+    function showApp() {
+        $('#loginScreen').classList.add('hidden');
+        $('#appShell').classList.add('visible');
+    }
+
+    function showLogin() {
+        $('#loginScreen').classList.remove('hidden');
+        $('#appShell').classList.remove('visible');
+    }
+
+    function doLogin() {
+        const user = $('#loginUser').value.trim();
+        const pass = $('#loginPass').value;
+        const err = $('#loginError');
+        err.textContent = '';
+
+        if (!user || !pass) {
+            err.textContent = 'Informe usuário e senha.';
+            return;
+        }
+
+        // POC: qualquer usuário/senha é aceito
+        const displayName = user
+            .split(/[._-]/)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+            .join(' ');
+
+        const session = {
+            login: user,
+            displayName: displayName || user,
+            role: 'Enfermeira · COREN 12345',
+            loggedAt: new Date().toISOString()
+        };
+        saveSession(session);
+        applySessionToUI(session);
+        showApp();
+        toast('Bem-vindo(a), ' + (session.displayName || session.login));
+    }
+
+    function doLogout() {
+        clearSession();
+        closeDrawer();
+        // Reseta estado em memória que pertença à sessão
+        signingAllocationId = null;
+        $('#signatureEmpty').style.display = 'block';
+        $('#signatureDocContent').style.display = 'none';
+        $('#signaturePadCard').style.display = 'none';
+        showLogin();
+    }
+
+    // ============================================================
+    // DADOS MOCK — TASY
+    // ============================================================
+    const mockPatients = [
+        { id: 'p1', name: 'Maria Silva', prontuario: '12345', age: 54 },
+        { id: 'p2', name: 'João Souza', prontuario: '67890', age: 62 },
+        { id: 'p3', name: 'Ana Beatriz', prontuario: '54321', age: 47 }
+    ];
+
+    const mockProcesses = [
+        { id: 'proc1', patientId: 'p1', name: '1ª Quimioterapia' },
+        { id: 'proc2', patientId: 'p1', name: 'Retorno de quimio' },
+        { id: 'proc3', patientId: 'p1', name: 'Exame pendente' },
+        { id: 'proc4', patientId: 'p2', name: '1ª Quimioterapia' },
+        { id: 'proc5', patientId: 'p2', name: 'Avaliação pré-op' },
+        { id: 'proc6', patientId: 'p3', name: '1ª Quimioterapia' },
+        { id: 'proc7', patientId: 'p3', name: 'Retorno' }
+    ];
+
+    const templates = [
+        {
+            id: 't1',
+            name: 'Termo de consentimento – 1ª quimio',
+            text: 'Declaro que recebi todas as informações sobre o tratamento de quimioterapia. Paciente: {{nome}}, prontuário {{prontuario}}, data {{data}}.',
+            fields: ['nome', 'prontuario', 'data']
+        },
+        {
+            id: 't2',
+            name: 'Termo de retorno',
+            text: 'Compareci à consulta de retorno. Paciente {{nome}}, prontuário {{prontuario}}, data {{data}}.',
+            fields: ['nome', 'prontuario', 'data']
+        }
+    ];
+
+    // Alocações GERAIS: (processDefinitionId × templateId), sem paciente.
+    // O mock usa processId como se fosse o ID da definição, pois aqui
+    // cada processo mock corresponde a uma definição.
+    const allocations = [
+        { id: 'alloc1', processId: 'proc1', templateId: 't1', signed: false, signedPdfBytes: null, signedAt: null },
+        { id: 'alloc2', processId: 'proc2', templateId: 't2', signed: false, signedPdfBytes: null, signedAt: null }
+    ];
+
+    let sendLog = [];
+    const generatedPdfs = [];
+
+    let selectedPatientId = 'p1';
+    let selectedProcessId = null;
+    let signingAllocationId = null;
+
+    // ============================================================
+    // UTILITÁRIOS
+    // ============================================================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    function uid(prefix) {
+        return (prefix || 'id') + '_' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function toast(msg, ms) {
+        const t = $('#toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), ms || 2400);
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    // ============================================================
+    // NAVEGAÇÃO
+    // ============================================================
+    const screenTitles = {
+        patients: 'Pacientes',
+        signature: 'Assinatura',
+        templates: 'Templates',
+        sends: 'Envios',
+        about: 'Sobre'
+    };
+
+    function navigateTo(screenName) {
+        $$('.screen').forEach(s => s.classList.remove('active'));
+        const el = document.getElementById('screen-' + screenName);
+        if (el) el.classList.add('active');
+        $('#headerTitle').textContent = screenTitles[screenName] || 'MedDoc';
+        $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.screen === screenName));
+        $('#appBody').scrollTop = 0;
+        closeDrawer();
+    }
+
+    function openDrawer() {
+        $('#drawer').classList.add('open');
+        $('#drawerOverlay').classList.add('open');
+    }
+    function closeDrawer() {
+        $('#drawer').classList.remove('open');
+        $('#drawerOverlay').classList.remove('open');
+    }
+
+    // ============================================================
+    // RENDER: PACIENTES
+    // ============================================================
+    function renderPatientSelect() {
+        const sel = $('#patientSelect');
+        sel.innerHTML = mockPatients.map(p =>
+            `<option value="${p.id}" ${p.id === selectedPatientId ? 'selected' : ''}>${escapeHtml(p.name)} · Pront. ${p.prontuario}</option>`
+        ).join('');
+    }
+
+    function renderPatientSummary() {
+        const p = mockPatients.find(x => x.id === selectedPatientId);
+        if (!p) { $('#patientSummary').innerHTML = ''; return; }
+        const procs = mockProcesses.filter(x => x.patientId === p.id);
+        const totalAlloc = allocations.filter(a => procs.some(pr => pr.id === a.processId)).length;
+        const signedAlloc = allocations.filter(a => procs.some(pr => pr.id === a.processId) && a.signed).length;
+        $('#patientSummary').innerHTML = `
+            <div class="meta-row"><span class="label">Nome</span><span class="value">${escapeHtml(p.name)}</span></div>
+            <div class="meta-row"><span class="label">Prontuário</span><span class="value">${p.prontuario}</span></div>
+            <div class="meta-row"><span class="label">Etapas</span><span class="value">${procs.length}</span></div>
+            <div class="meta-row"><span class="label">Documentos</span><span class="value">${signedAlloc}/${totalAlloc} assinados</span></div>
+        `;
+    }
+
+    function renderProcessFlow() {
+        const container = $('#processFlow');
+        const processes = mockProcesses.filter(p => p.patientId === selectedPatientId);
+        $('#processCount').textContent = processes.length;
+
+        if (!processes.length) {
+            container.innerHTML = `<div class="empty-state">Nenhuma etapa encontrada</div>`;
+            return;
+        }
+
+        if (selectedProcessId && !processes.find(p => p.id === selectedProcessId)) {
+            selectedProcessId = processes[0].id;
+        }
+        if (!selectedProcessId) selectedProcessId = processes[0].id;
+
+        container.innerHTML = processes.map(proc => {
+            const allocs = allocations.filter(a => a.processId === proc.id);
+            const hasAlloc = allocs.length > 0;
+            const allSigned = hasAlloc && allocs.every(a => a.signed);
+            let cls = 'process-step';
+            if (proc.id === selectedProcessId) cls += ' selected';
+            if (allSigned) cls += ' signed';
+            else if (hasAlloc) cls += ' assigned';
+            const initial = proc.name.charAt(0).toUpperCase();
+            return `
+                <div class="${cls}" data-process-id="${proc.id}">
+                    <div class="process-dot">${initial}</div>
+                    <div class="process-label">${escapeHtml(proc.name)}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.process-step').forEach(el => {
+            el.addEventListener('click', () => {
+                selectedProcessId = el.dataset.processId;
+                renderProcessFlow();
+                renderProcessDocs();
+            });
+        });
+    }
+
+    function renderProcessDocs() {
+        const list = $('#processDocsList');
+        if (!selectedProcessId) {
+            list.innerHTML = `<div class="empty-state">Selecione uma etapa</div>`;
+            return;
+        }
+        const proc = mockProcesses.find(p => p.id === selectedProcessId);
+        if (!proc) return;
+
+        const allocs = allocations.filter(a => a.processId === selectedProcessId);
+
+        if (!allocs.length) {
+            list.innerHTML = `<div class="empty-state">Nenhum documento vinculado a esta etapa</div>`;
+            return;
+        }
+
+        list.innerHTML = allocs.map(alloc => {
+            const tpl = templates.find(t => t.id === alloc.templateId);
+            const name = tpl ? tpl.name : 'Template removido';
+            const status = alloc.signed
+                ? `<span class="status signed">Assinado</span>`
+                : `<span class="status pending">Pendente</span>`;
+            const action = alloc.signed
+                ? `<button class="btn btn-secondary btn-sm" data-action="view" data-alloc="${alloc.id}">Ver PDF</button>`
+                : `<button class="btn btn-primary btn-sm" data-action="sign" data-alloc="${alloc.id}">Assinar</button>`;
+            return `
+                <div class="doc-item">
+                    <div class="doc-info">
+                        <div class="doc-name">${escapeHtml(name)}</div>
+                        <div class="doc-meta">${status}</div>
+                    </div>
+                    ${action}
+                </div>
+            `;
+        }).join('');
+
+        list.querySelectorAll('button[data-action="sign"]').forEach(btn => {
+            btn.addEventListener('click', () => startSigning(btn.dataset.alloc));
+        });
+        list.querySelectorAll('button[data-action="view"]').forEach(btn => {
+            btn.addEventListener('click', () => viewPdf(btn.dataset.alloc));
+        });
+    }
+
+    function renderPatientsScreen() {
+        renderPatientSelect();
+        renderPatientSummary();
+        renderProcessFlow();
+        renderProcessDocs();
+    }
+
+    // ============================================================
+    // RENDER: TEMPLATES
+    // ============================================================
+    function renderTemplateList() {
+        const list = $('#templateList');
+        $('#templateCount').textContent = templates.length;
+        if (!templates.length) {
+            list.innerHTML = `<div class="empty-state">Nenhum template cadastrado</div>`;
+            return;
+        }
+        list.innerHTML = templates.map(t => `
+            <div class="doc-item">
+                <div class="doc-info">
+                    <div class="doc-name">${escapeHtml(t.name)}</div>
+                    <div class="doc-meta">Campos: ${t.fields.length ? t.fields.map(escapeHtml).join(', ') : '—'}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ============================================================
+    // RENDER: ENVIOS
+    // ============================================================
+    function renderSendLog() {
+        const list = $('#sendLogList');
+        if (!sendLog.length) {
+            list.innerHTML = `<div class="empty-state">Nenhum envio registrado</div>`;
+            return;
+        }
+        list.innerHTML = sendLog.map(log => `
+            <div class="log-item">
+                <div class="log-time">${log.time}</div>
+                <div>${escapeHtml(log.message)}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderPdfList() {
+        const list = $('#pdfList');
+        $('#pdfCount').textContent = generatedPdfs.length;
+        if (!generatedPdfs.length) {
+            list.innerHTML = `<div class="empty-state">Nenhum PDF gerado</div>`;
+            return;
+        }
+        list.innerHTML = generatedPdfs.map((pdf, i) => `
+            <div class="doc-item">
+                <div class="doc-info">
+                    <div class="doc-name">${escapeHtml(pdf.name)}</div>
+                    <div class="doc-meta">${pdf.date}</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" data-pdf-idx="${i}">Abrir</button>
+            </div>
+        `).join('');
+        list.querySelectorAll('button[data-pdf-idx]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pdf = generatedPdfs[parseInt(btn.dataset.pdfIdx, 10)];
+                if (!pdf) return;
+                const blob = new Blob([pdf.bytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            });
+        });
+    }
+
+    // ============================================================
+    // ALOCAÇÃO (MODAL)
+    // ============================================================
+    function openAllocateModal() {
+        if (!selectedProcessId) {
+            toast('Selecione uma etapa primeiro');
+            return;
+        }
+        const proc = mockProcesses.find(p => p.id === selectedProcessId);
+        $('#modalProcessInfo').textContent = proc.name;
+        const sel = $('#modalTemplateSelect');
+        if (!templates.length) {
+            sel.innerHTML = `<option disabled>Nenhum template cadastrado</option>`;
+        } else {
+            sel.innerHTML = templates.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+        }
+        $('#allocateModal').classList.add('open');
+    }
+
+    function closeAllocateModal() {
+        $('#allocateModal').classList.remove('open');
+    }
+
+    function confirmAllocate() {
+        const templateId = $('#modalTemplateSelect').value;
+        if (!templateId || !selectedProcessId) return;
+
+        // Alocação é geral: aplica a todos os pacientes com essa etapa.
+        const jaExiste = allocations.some(a =>
+            a.processId === selectedProcessId && a.templateId === templateId
+        );
+        if (jaExiste) {
+            toast('Este template já está vinculado a esta etapa');
+            closeAllocateModal();
+            return;
+        }
+
+        allocations.push({
+            id: uid('alloc'),
+            processId: selectedProcessId,
+            templateId,
+            signed: false,
+            signedPdfBytes: null,
+            signedAt: null
+        });
+        closeAllocateModal();
+        toast('Documento vinculado à etapa (vale para todos os pacientes)');
+        renderProcessFlow();
+        renderProcessDocs();
+        renderPatientSummary();
+    }
+
+    // ============================================================
+    // ASSINATURA
+    // ============================================================
+    const canvas = $('#signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+    let signatureHasContent = false;
+
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#0a3d62';
+        clearSignature();
+    }
+
+    function clearSignature() {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        signatureHasContent = false;
+        $('#signatureHint').style.display = 'flex';
+    }
+
+    function getCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const src = e.touches ? e.touches[0] : e;
+        return {
+            x: src.clientX - rect.left,
+            y: src.clientY - rect.top
+        };
+    }
+
+    function startDraw(e) {
+        e.preventDefault();
+        drawing = true;
+        const c = getCoords(e);
+        lastX = c.x; lastY = c.y;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        signatureHasContent = true;
+        $('#signatureHint').style.display = 'none';
+    }
+    function draw(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const c = getCoords(e);
+        ctx.lineTo(c.x, c.y);
+        ctx.stroke();
+        lastX = c.x; lastY = c.y;
+    }
+    function stopDraw(e) {
+        if (!drawing) return;
+        if (e) e.preventDefault();
+        drawing = false;
+        ctx.closePath();
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw);
+    canvas.addEventListener('touchcancel', stopDraw);
+
+    window.addEventListener('resize', () => {
+        if (canvas.offsetParent) resizeCanvas();
+    });
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => { if (canvas.offsetParent) resizeCanvas(); }, 250);
+    });
+
+    function startSigning(allocId) {
+        const alloc = allocations.find(a => a.id === allocId);
+        if (!alloc || alloc.signed) return;
+        signingAllocationId = allocId;
+
+        const tpl = templates.find(t => t.id === alloc.templateId);
+        const proc = mockProcesses.find(p => p.id === alloc.processId);
+        const patient = mockPatients.find(p => p.id === selectedPatientId);
+
+        $('#signatureEmpty').style.display = 'none';
+        $('#signatureDocContent').style.display = 'block';
+        $('#signaturePadCard').style.display = 'block';
+        $('#sigDocName').textContent = tpl ? tpl.name : '—';
+        $('#sigDocPatient').textContent = patient ? patient.name : '—';
+        $('#sigDocProcess').textContent = proc ? proc.name : '—';
+
+        navigateTo('signature');
+        setTimeout(() => {
+            resizeCanvas();
+            clearSignature();
+        }, 120);
+    }
+
+    function isCanvasBlank() {
+        return !signatureHasContent;
+    }
+
+    // ============================================================
+    // PDF + ENVIO
+    // ============================================================
+    async function generatePdf(template, patient, signatureDataUrl) {
+        const { PDFDocument, rgb, StandardFonts } = PDFLib;
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([595, 842]);
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const fontSize = 11.5;
+        const margin = 50;
+        let y = 800;
+
+        page.drawText('HOSPITAL CENTRAL', { x: margin, y, size: 9, font: fontBold, color: rgb(0.4,0.4,0.45) });
+        y -= 14;
+        page.drawText('Gestão de Documentos Clínicos', { x: margin, y, size: 8, font, color: rgb(0.55,0.55,0.6) });
+        y -= 30;
+        page.drawLine({
+            start: { x: margin, y },
+            end: { x: 545, y },
+            thickness: 0.8,
+            color: rgb(0.85,0.87,0.9)
+        });
+        y -= 30;
+
+        page.drawText(template.name, { x: margin, y, size: 15, font: fontBold, color: rgb(0.04,0.24,0.38) });
+        y -= 30;
+
+        let content = template.text;
+        const data = {
+            nome: patient.name,
+            prontuario: patient.prontuario,
+            data: new Date().toLocaleDateString('pt-BR')
+        };
+        template.fields.forEach(f => {
+            content = content.replace(new RegExp(`{{${f}}}`, 'g'), data[f] || `[${f}]`);
+        });
+
+        const maxWidth = 495;
+        const paragraphs = content.split('\n');
+        for (const para of paragraphs) {
+            const words = para.split(' ');
+            let line = '';
+            for (const w of words) {
+                const test = line ? line + ' ' + w : w;
+                if (font.widthOfTextAtSize(test, fontSize) > maxWidth) {
+                    page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0.1,0.12,0.15) });
+                    y -= 18;
+                    line = w;
+                } else {
+                    line = test;
+                }
+            }
+            if (line) {
+                page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0.1,0.12,0.15) });
+                y -= 18;
+            }
+            y -= 6;
+        }
+
+        if (signatureDataUrl) {
+            y -= 30;
+            page.drawText('Assinatura do paciente', {
+                x: margin, y, size: 9.5, font: fontBold, color: rgb(0.35,0.38,0.42)
+            });
+            y -= 8;
+            page.drawLine({
+                start: { x: margin, y },
+                end: { x: margin + 250, y },
+                thickness: 0.6,
+                color: rgb(0.7,0.72,0.75)
+            });
+            y -= 60;
+            const sigBytes = await fetch(signatureDataUrl).then(r => r.arrayBuffer());
+            const sigImg = await pdfDoc.embedPng(sigBytes);
+            const dims = sigImg.scale(0.45);
+            page.drawImage(sigImg, {
+                x: margin + 10,
+                y: y + 10,
+                width: dims.width,
+                height: dims.height
+            });
+        }
+
+        return await pdfDoc.save();
+    }
+
+    async function signAndSend() {
+        if (!signingAllocationId) {
+            toast('Nenhum documento em assinatura');
+            return;
+        }
+        if (isCanvasBlank()) {
+            toast('Desenhe a assinatura antes de enviar');
+            return;
+        }
+        const alloc = allocations.find(a => a.id === signingAllocationId);
+        if (!alloc || alloc.signed) {
+            toast('Documento inválido');
+            return;
+        }
+        const tpl = templates.find(t => t.id === alloc.templateId);
+        const proc = mockProcesses.find(p => p.id === alloc.processId);
+        const patient = mockPatients.find(p => p.id === selectedPatientId);
+
+        const btn = $('#signAndSendBtn');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+
+        try {
+            const sigDataUrl = canvas.toDataURL('image/png');
+            const pdfBytes = await generatePdf(tpl, patient, sigDataUrl);
+
+            alloc.signed = true;
+            alloc.signedPdfBytes = pdfBytes;
+            alloc.signedAt = new Date();
+
+            const now = new Date();
+            sendLog.unshift({
+                id: uid('log'),
+                time: now.toLocaleDateString('pt-BR') + ' · ' + now.toLocaleTimeString('pt-BR'),
+                message: `"${tpl.name}" assinado e enviado ao Tasy · ${patient.name} · ${proc.name}`
+            });
+
+            generatedPdfs.unshift({
+                name: `${tpl.name} — ${patient.name}.pdf`,
+                bytes: pdfBytes,
+                date: now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR')
+            });
+
+            toast('Documento assinado e enviado');
+
+            signingAllocationId = null;
+            $('#signatureEmpty').style.display = 'block';
+            $('#signatureDocContent').style.display = 'none';
+            $('#signaturePadCard').style.display = 'none';
+            clearSignature();
+
+            renderProcessFlow();
+            renderProcessDocs();
+            renderPatientSummary();
+            renderSendLog();
+            renderPdfList();
+
+            setTimeout(() => navigateTo('patients'), 600);
+        } catch (err) {
+            console.error(err);
+            toast('Erro ao gerar PDF');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Assinar e enviar';
+        }
+    }
+
+    function viewPdf(allocId) {
+        const alloc = allocations.find(a => a.id === allocId);
+        if (!alloc || !alloc.signedPdfBytes) {
+            toast('PDF indisponível');
+            return;
+        }
+        const blob = new Blob([alloc.signedPdfBytes], { type: 'application/pdf' });
+        window.open(URL.createObjectURL(blob), '_blank');
+    }
+
+    // ============================================================
+    // EVENTOS
+    // ============================================================
+    function bindEvents() {
+        // Login
+        $('#loginBtn').addEventListener('click', doLogin);
+        $('#loginPass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doLogin();
+        });
+        $('#loginUser').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') $('#loginPass').focus();
+        });
+
+        // Logout
+        $('#logoutBtn').addEventListener('click', doLogout);
+
+        // Drawer
+        $('#menuBtn').addEventListener('click', openDrawer);
+        $('#drawerOverlay').addEventListener('click', closeDrawer);
+        $$('.nav-item').forEach(item => {
+            item.addEventListener('click', () => navigateTo(item.dataset.screen));
+        });
+
+        // Paciente
+        $('#patientSelect').addEventListener('change', (e) => {
+            selectedPatientId = e.target.value;
+            selectedProcessId = null;
+            signingAllocationId = null;
+            renderPatientsScreen();
+        });
+
+        // Alocar
+        $('#allocateBtn').addEventListener('click', openAllocateModal);
+        $('#cancelModalBtn').addEventListener('click', closeAllocateModal);
+        $('#confirmAllocateBtn').addEventListener('click', confirmAllocate);
+        $('#allocateModal').addEventListener('click', (e) => {
+            if (e.target === $('#allocateModal')) closeAllocateModal();
+        });
+
+        // Templates
+        $('#saveTemplateBtn').addEventListener('click', () => {
+            const name = $('#templateName').value.trim();
+            const text = $('#templateText').value.trim();
+            const fieldsRaw = $('#templateFields').value.trim();
+            if (!name || !text) {
+                toast('Preencha nome e texto do template');
+                return;
+            }
+            const fields = fieldsRaw ? fieldsRaw.split(',').map(f => f.trim()).filter(Boolean) : [];
+            templates.push({ id: uid('t'), name, text, fields });
+            renderTemplateList();
+            toast('Template salvo');
+            $('#templateName').value = '';
+            $('#templateText').value = '';
+            $('#templateFields').value = '';
+        });
+        $('#clearTemplateBtn').addEventListener('click', () => {
+            $('#templateName').value = '';
+            $('#templateText').value = '';
+            $('#templateFields').value = '';
+        });
+
+        // Assinatura
+        $('#clearSignatureBtn').addEventListener('click', clearSignature);
+        $('#signAndSendBtn').addEventListener('click', signAndSend);
+
+        // Envios
+        $('#clearLogBtn').addEventListener('click', () => {
+            sendLog = [];
+            renderSendLog();
+            toast('Histórico limpo');
+        });
+
+        // Atalho ESC fecha drawer/modal (desktop)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDrawer();
+                closeAllocateModal();
+            }
+        });
+    }
+
+    // ============================================================
+    // INICIALIZAÇÃO
+    // ============================================================
+    function init() {
+        bindEvents();
+        renderPatientsScreen();
+        renderTemplateList();
+        renderSendLog();
+        renderPdfList();
+
+        // Pré-popula campos de template
+        $('#templateName').value = 'Termo de consentimento – 1ª quimio';
+        $('#templateText').value = 'Declaro que recebi todas as informações sobre o tratamento de quimioterapia. Paciente: {{nome}}, prontuário {{prontuario}}, data {{data}}.';
+        $('#templateFields').value = 'nome, prontuario, data';
+
+        // Sessão
+        const session = loadSession();
+        if (session) {
+            applySessionToUI(session);
+            showApp();
+        } else {
+            showLogin();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
