@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundo Pet — Protótipo Navegável</title>
+<style>
+  /* ============ RESET ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cor-primaria: #2c3e50;
+    --cor-secundaria: #4a6a8a;
+    --cor-destaque: #4a7a4a;
+    --cor-alerta: #8a4a4a;
+    --cor-fundo-claro: #f5f7fa;
+    --cor-borda: #d0d8e0;
+    --cor-texto: #1a1a1a;
+    --cor-texto-claro: #666;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background-color: #e6e6e6;
+    color: var(--cor-texto);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ============ NAVBAR GLOBAL ============ */
+  .navbar {
+    background-color: var(--cor-primaria);
+    color: #fff;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .navbar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  .logo {
+    font-weight: bold;
+    font-size: 18px;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+
+  .logo::before {
+    content: "🐾 ";
+    font-size: 16px;
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 22px;
+    list-style: none;
+    align-items: center;
+  }
+
+  .nav-menu a {
+    color: #d0d8e0;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-menu a:hover,
+  .nav-menu a.active {
+    color: #fff;
+    border-bottom-color: #7aa0c0;
+  }
+
+  .nav-search {
+    background-color: transparent;
+    border: 1px solid #7aa0c0;
+    border-radius: 4px;
+    color: #fff;
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .nav-search:hover {
+    background-color: #3a5068;
+  }
+
+  .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  /* ============ CONTAINER ============ */
+  .pagina {
+    display: none;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 0 40px 0;
+    background-color: #fff;
+    min-height: calc(100vh - 60px);
+  }
+
+  .pagina.ativa {
+    display: block;
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    background: linear-gradient(135deg, #4a6a8a, #2c3e50);
+    color: #fff;
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: #d0d8e0;
+    margin-bottom: 24px;
+  }
+
+  .hero-botoes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ============ BOTÕES ============ */
+  .btn {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .btn-primario {
+    background-color: #fff;
+    color: var(--cor-primaria);
+  }
+
+  .btn-primario:hover {
+    background-color: #e0e8f0;
+  }
+
+  .btn-perigo {
+    background-color: var(--cor-alerta);
+    color: #fff;
+  }
+
+  .btn-perigo:hover {
+    background-color: #6a3a3a;
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    border: 2px solid #fff;
+    color: #fff;
+  }
+
+  .btn-outline:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+
+  .btn-secundario {
+    background-color: var(--cor-secundaria);
+    color: #fff;
+  }
+
+  .btn-secundario:hover {
+    background-color: #3a5a7a;
+  }
+
+  .btn-neutro {
+    background-color: #e8eef4;
+    color: var(--cor-secundaria);
+    border: 1px solid var(--cor-borda);
+  }
+
+  .btn-neutro:hover {
+    background-color: #d8e2ec;
+  }
+
+  /* ============ SEÇÕES ============ */
+  .secao {
+    padding: 30px 40px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .secao-titulo {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
+    border-left: 4px solid var(--cor-secundaria);
+    padding-left: 12px;
+  }
+
+  /* ============ GRID DE CARDS ============ */
+  .grid-cards {
+    display: grid;
+    gap: 16px;
+  }
+
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+  .card-especie {
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 22px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .card-especie:hover {
+    border-color: var(--cor-secundaria);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 106, 138, 0.15);
+  }
+
+  .card-especie .icone {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .card-especie .nome {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+  }
+
+  /* ============ CARD EMERGÊNCIA ============ */
+  .card-emergencia {
+    background-color: #fef5f5;
+    border: 2px solid #c07070;
+    border-radius: 8px;
+    padding: 22px;
+    text-align: center;
+  }
+
+  .card-emergencia .titulo {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--cor-alerta);
+    margin-bottom: 14px;
+  }
+
+  .card-emergencia .botoes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .card-emergencia .btn {
+    background-color: var(--cor-alerta);
+    color: #fff;
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+
+  .card-emergencia .btn:hover {
+    background-color: #6a3a3a;
+  }
+
+  /* ============ CARDS DE CONTEÚDO ============ */
+  .card-conteudo {
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .card-conteudo:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-conteudo .thumb {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 28px;
+    background-color: #a0b0c0;
+  }
+
+  .card-conteudo .thumb.video { background-color: #4a6a8a; }
+  .card-conteudo .thumb.podcast { background-color: #8a6a4a; }
+  .card-conteudo .thumb.infografico { background-color: #4a8a6a; }
+  .card-conteudo .thumb.artigo { background-color: #6a7a8a; }
+  .card-conteudo .thumb.quiz { background-color: #8a4a8a; }
+  .card-conteudo .thumb.ferramenta { background-color: #8a8a4a; }
+
+  .card-conteudo .corpo {
+    padding: 12px;
+  }
+
+  .card-conteudo .tag {
+    display: inline-block;
+    background-color: #e8eef4;
+    color: var(--cor-secundaria);
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .card-conteudo .titulo {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .card-conteudo .desc {
+    font-size: 12px;
+    color: var(--cor-texto-claro);
+  }
+
+  /* ============ BARRA DE BUSCA ============ */
+  .barra-busca {
+    background-color: var(--cor-fundo-claro);
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .barra-busca input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #c0c0c0;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  .barra-busca input:focus {
+    outline: 2px solid var(--cor-secundaria);
+    border-color: var(--cor-secundaria);
+  }
+
+  /* ============ BREADCRUMB ============ */
+  .breadcrumb {
+    background-color: var(--cor-fundo-claro);
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--cor-texto-claro);
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+
+  .breadcrumb a {
+    color: var(--cor-secundaria);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  /* ============ ABAS ============ */
+  .abas {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--cor-borda);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .aba {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--cor-texto-claro);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .aba:hover {
+    color: var(--cor-primaria);
+  }
+
+  .aba.ativa {
+    color: var(--cor-primaria);
+    border-bottom-color: var(--cor-secundaria);
+  }
+
+  /* ============ FILTROS ============ */
+  .filtros {
+    background-color: var(--cor-fundo-claro);
+    padding: 12px 16px;
+    border-radius: 6px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .filtro {
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 5px;
+    padding: 6px 12px;
+    color: #555;
+    cursor: pointer;
+  }
+
+  .filtro:hover {
+    border-color: var(--cor-secundaria);
+    color: var(--cor-secundaria);
+  }
+
+  /* ============ MÓDULOS DE TRILHA ============ */
+  .modulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .modulo:hover {
+    border-color: var(--cor-secundaria);
+  }
+
+  .modulo.concluido {
+    background-color: #f0f8f0;
+    border-color: #a0c8a0;
+  }
+
+  .modulo.atual {
+    background-color: #f0f5fa;
+    border-color: var(--cor-secundaria);
+    border-width: 2px;
+  }
+
+  .modulo .status {
+    font-size: 20px;
+    width: 30px;
+    text-align: center;
+  }
+
+  .modulo .info {
+    flex: 1;
+  }
+
+  .modulo .titulo-mod {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+    margin-bottom: 3px;
+  }
+
+  .modulo .desc-mod {
+    font-size: 12px;
+    color: var(--cor-texto-claro);
+  }
+
+  /* ============ BARRA DE PROGRESSO ============ */
+  .progresso {
+    background-color: #e0e8f0;
+    border-radius: 12px;
+    height: 26px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+
+  .progresso-fill {
+    background-color: var(--cor-secundaria);
+    height: 100%;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 26px;
+    transition: width 0.4s;
+  }
+
+  /* ============ GRID DE SINTOMAS ============ */
+  .card-sintoma {
+    background-color: #fff;
+    border: 1px solid #e0b0b0;
+    border-radius: 8px;
+    padding: 18px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .card-sintoma:hover {
+    background-color: #fef5f5;
+    transform: translateY(-2px);
+  }
+
+  .card-sintoma .icone {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .card-sintoma .nome {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+  }
+
+  /* ============ RESULTADOS DE BUSCA ============ */
+  .resultado {
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .resultado:hover {
+    border-color: var(--cor-secundaria);
+    box-shadow: 0 2px 8px rgba(74,106,138,0.1);
+  }
+
+  .resultado.destaque {
+    background-color: #fef5f5;
+    border-left: 4px solid var(--cor-alerta);
+  }
+
+  .resultado .tag-res {
+    display: inline-block;
+    background-color: #e8eef4;
+    color: var(--cor-secundaria);
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .resultado .titulo-res {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--cor-primaria);
+    margin-bottom: 4px;
+  }
+
+  .resultado .meta-res {
+    font-size: 12px;
+    color: var(--cor-texto-claro);
+    margin-bottom: 6px;
+  }
+
+  .resultado .desc-res {
+    font-size: 13px;
+    color: #555;
+  }
+
+  /* ============ CONTATOS ============ */
+  .contato-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background-color: var(--cor-fundo-claro);
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .contato-item .label {
+    font-size: 14px;
+    color: var(--cor-primaria);
+    font-weight: 500;
+  }
+
+  .contato-item .btn {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+
+  /* ============ PLAYER MULTIMÍDIA ============ */
+  .player {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    color: #fff;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .player .icone-player {
+    font-size: 40px;
+    background-color: #2c3e50;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .player .icone-player:hover {
+    background-color: var(--cor-secundaria);
+  }
+
+  .player .info-player h4 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .player .info-player p {
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  /* ============ GALERIA DE IMAGENS ============ */
+  .galeria {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .galeria .item {
+    background-color: #d0d8e0;
+    border-radius: 6px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a6a8a;
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .galeria .item:hover {
+    background-color: var(--cor-secundaria);
+    color: #fff;
+  }
+
+  /* ============ INFOGRÁFICO SVG ============ */
+  .infografico {
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  /* ============ RODAPÉ ============ */
+  .rodape {
+    background-color: var(--cor-primaria);
+    color: #d0d8e0;
+    padding: 24px 40px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .rodape a {
+    color: #d0d8e0;
+    text-decoration: none;
+    margin: 0 8px;
+    cursor: pointer;
+  }
+
+  .rodape a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .rodape .copy {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #8899aa;
+  }
+
+  /* ============ UTILITÁRIOS ============ */
+  .mt-10 { margin-top: 10px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+  .text-center { text-align: center; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .voltar-topo {
+    display: inline-block;
+    margin: 20px 40px 0 40px;
+    color: var(--cor-secundaria);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .voltar-topo:hover { text-decoration: underline; }
+
+  /* ============ RESPONSIVO ============ */
+  @media (max-width: 900px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-5 { grid-template-columns: repeat(3, 1fr); }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .hamburger { display: block; }
+    .nav-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background-color: var(--cor-primaria);
+      flex-direction: column;
+      padding: 20px;
+      gap: 14px;
+    }
+    .nav-menu.aberto { display: flex; }
+    .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
+    .galeria { grid-template-columns: repeat(2, 1fr); }
+    .hero { padding: 40px 20px; }
+    .hero h1 { font-size: 22px; }
+    .secao { padding: 20px; }
+    .rodape { padding: 20px; }
+    .voltar-topo { margin: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="logo" onclick="navegar('home')">MUNDO PET</a>
+    <button class="hamburger" onclick="toggleMenu()">☰</button>
+    <ul class="nav-menu" id="navMenu">
+      <li><a onclick="navegar('home')" data-pagina="home">Início</a></li>
+      <li><a onclick="navegar('especies')" data-pagina="especies">Espécies</a></li>
+      <li><a onclick="navegar('temas')" data-pagina="temas">Temas</a></li>
+      <li><a onclick="navegar('trilhas')" data-pagina="trilhas">Trilhas</a></li>
+      <li><a onclick="navegar('emergencia')" data-pagina="emergencia">Emergência</a></li>
+      <li><button class="nav-search" onclick="navegar('busca')">🔍 Buscar</button></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================ -->
+<!-- PÁGINA 1 — HOME -->
+<!-- ============================================ -->
+<section class="pagina ativa" id="pagina-home">
+
+  <div class="hero">
+    <h1>Tudo o que seu melhor amigo precisa, em um só lugar.</h1>
+    <p>Informação confiável, organizada e acessível para tutores de todas as fases.</p>
+    <div class="hero-botoes">
+      <button class="btn btn-primario" onclick="navegar('trilhas')">Comece por aqui →</button>
+      <button class="btn btn-perigo" onclick="navegar('emergencia')">🚨 Área de Emergência</button>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Acesso rápido por espécie</p>
+    <div class="grid-cards grid-5">
+      <div class="card-especie" onclick="navegar('especies')">
+        <span class="icone">🐕</span>
+        <div class="nome">Cães</div>
+      </div>
+      <div class="card-especie" onclick="navegar('especies')">
+        <span class="icone">🐈</span>
+        <div class="nome">Gatos</div>
+      </div>
+      <div class="card-especie" onclick="navegar('especies')">
+        <span class="icone">🦜</span>
+        <div class="nome">Aves</div>
+      </div>
+      <div class="card-especie" onclick="navegar('especies')">
+        <span class="icone">🐹</span>
+        <div class="nome">Roedores</div>
+      </div>
+      <div class="card-especie" onclick="navegar('especies')">
+        <span class="icone">🦎</span>
+        <div class="nome">Répteis</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Emergência — Acesso rápido</p>
+    <div class="card-emergencia">
+      <div class="titulo">🚨 Meu pet está passando mal. O que fazer?</div>
+      <div class="botoes">
+        <button class="btn" onclick="navegar('emergencia')">Ver sintomas comuns</button>
+        <button class="btn" onclick="navegar('emergencia')">Primeiros socorros</button>
+        <button class="btn" onclick="navegar('emergencia')">Veterinário 24h</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Trilhas em destaque</p>
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('trilha-primeiro-pet')">
+        <div class="thumb">🐾</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Primeiro Pet</div>
+          <div class="desc">Guia completo para tutores iniciantes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('trilhas')">
+        <div class="thumb">💉</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Saúde Preventiva</div>
+          <div class="desc">Calendário, vacinas e check-ups</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('trilhas')">
+        <div class="thumb">🎓</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Adestramento Básico</div>
+          <div class="desc">Comandos essenciais e socialização</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Conteúdos recentes</p>
+    <div class="grid-cards grid-4">
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb artigo">📷</div>
+        <div class="corpo">
+          <span class="tag">Imagem</span>
+          <div class="titulo">Alimentação de filhotes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo</span>
+          <div class="titulo">Banho e tosa passo a passo</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb podcast">🎧</div>
+        <div class="corpo">
+          <span class="tag">Podcast</span>
+          <div class="titulo">Comportamento de gatos</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb infografico">📊</div>
+        <div class="corpo">
+          <span class="tag">Infográfico</span>
+          <div class="titulo">Vacinas obrigatórias</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Busca por sintoma</p>
+    <div class="barra-busca">
+      <input type="text" id="buscaHome" placeholder='Digite o sintoma: "meu cachorro está vomitando..."' onkeydown="if(event.key==='Enter') irParaBusca()">
+      <button class="btn btn-secundario" onclick="irParaBusca()">Buscar</button>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Equipe</a> |
+    <a onclick="navegar('home')">Parceiros</a> |
+    <a onclick="navegar('home')">Contato</a> |
+    <a onclick="navegar('home')">Política de Privacidade</a> |
+    <a onclick="navegar('home')">Termos</a>
+    <div class="copy">© 2026 Mundo Pet — Todos os direitos reservados.</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 2 — ESPÉCIES (CÃES) -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-especies">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt;
+      <a onclick="navegar('especies')">Espécies</a> &gt;
+      <strong>Cães</strong>
+    </div>
+
+    <div style="display:flex; gap:20px; align-items:center; margin-bottom:24px;">
+      <div style="width:130px; height:130px; background:linear-gradient(135deg,#d0d8e0,#a0b0c0); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:60px; flex-shrink:0;">🐕</div>
+      <div>
+        <h1 style="font-size:26px; color:var(--cor-primaria); margin-bottom:8px;">CÃES</h1>
+        <p style="font-size:14px; color:#555; text-indent:0;">Tudo sobre saúde, alimentação, comportamento e bem-estar do seu cão.</p>
+      </div>
+    </div>
+
+    <div class="abas">
+      <button class="aba" onclick="ativarAba(this)">Raças</button>
+      <button class="aba ativa" onclick="ativarAba(this)">Saúde</button>
+      <button class="aba" onclick="ativarAba(this)">Alimentação</button>
+      <button class="aba" onclick="ativarAba(this)">Comportamento</button>
+      <button class="aba" onclick="ativarAba(this)">Higiene</button>
+      <button class="aba" onclick="ativarAba(this)">Lazer</button>
+    </div>
+
+    <div class="filtros">
+      <span class="filtro">Nível: Todos ▼</span>
+      <span class="filtro">Formato: Todos ▼</span>
+      <span class="filtro">Ordenar por: Relevância ▼</span>
+    </div>
+
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo</span>
+          <div class="titulo">Vacinação: o que seu cão precisa</div>
+          <div class="desc">[Assistir →]</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb artigo">📄</div>
+        <div class="corpo">
+          <span class="tag">Artigo</span>
+          <div class="titulo">Doenças comuns em cães</div>
+          <div class="desc">[Ler →]</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb infografico">📊</div>
+        <div class="corpo">
+          <span class="tag">Infográfico</span>
+          <div class="titulo">Calendário de vacinas</div>
+          <div class="desc">[Ver →]</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb podcast">🎧</div>
+        <div class="corpo">
+          <span class="tag">Podcast</span>
+          <div class="titulo">Saúde preventiva para cães</div>
+          <div class="desc">[Ouvir →]</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb quiz">❓</div>
+        <div class="corpo">
+          <span class="tag">Quiz</span>
+          <div class="titulo">Teste seus conhecimentos</div>
+          <div class="desc">[Começar →]</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb ferramenta">🧮</div>
+        <div class="corpo">
+          <span class="tag">Ferramenta</span>
+          <div class="titulo">Calculadora de idade canina</div>
+          <div class="desc">[Calcular →]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-30">
+      <button class="btn btn-neutro">Carregar mais conteúdos...</button>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Equipe</a> |
+    <a onclick="navegar('home')">Contato</a> |
+    <a onclick="navegar('home')">Privacidade</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 3 — TRILHA PRIMEIRO PET -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-trilha-primeiro-pet">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt;
+      <a onclick="navegar('trilhas')">Trilhas</a> &gt;
+      <strong>Primeiro Pet</strong>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#4a6a8a,#2c3e50); color:#fff; padding:32px; border-radius:10px; margin-bottom:24px;">
+      <h1 style="font-size:24px; margin-bottom:10px;">🐾 PRIMEIRO PET</h1>
+      <p style="text-indent:0; color:#d0d8e0; font-size:14px; margin-bottom:18px;">Guia completo para quem está recebendo um animal em casa pela primeira vez.</p>
+      <button class="btn btn-primario">Iniciar trilha →</button>
+    </div>
+
+    <div style="background:var(--cor-fundo-claro); padding:18px; border-radius:8px; margin-bottom:24px;">
+      <div style="font-size:14px; font-weight:bold; color:var(--cor-primaria); margin-bottom:8px;">Progresso da trilha — Módulo 2 de 5</div>
+      <div class="progresso">
+        <div class="progresso-fill" style="width:40%;">40% concluído</div>
+      </div>
+    </div>
+
+    <p class="secao-titulo">Módulos da trilha</p>
+
+    <div class="modulo concluido" onclick="navegar('conteudo')">
+      <div class="status">✅</div>
+      <div class="info">
+        <div class="titulo-mod">Módulo 1 — Antes da Chegada</div>
+        <div class="desc-mod">Preparando a casa, itens essenciais, escolha do veterinário</div>
+      </div>
+    </div>
+
+    <div class="modulo atual" onclick="navegar('conteudo')">
+      <div class="status">🔵</div>
+      <div class="info">
+        <div class="titulo-mod">Módulo 2 — Primeiros Dias (em andamento)</div>
+        <div class="desc-mod">Adaptação, alimentação inicial, primeiros comandos</div>
+      </div>
+    </div>
+
+    <div class="modulo" onclick="navegar('conteudo')">
+      <div class="status">⚪</div>
+      <div class="info">
+        <div class="titulo-mod">Módulo 3 — Rotina Saudável</div>
+        <div class="desc-mod">Banho, escovação, passeios, brincadeiras</div>
+      </div>
+    </div>
+
+    <div class="modulo" onclick="navegar('conteudo')">
+      <div class="status">⚪</div>
+      <div class="info">
+        <div class="titulo-mod">Módulo 4 — Saúde Preventiva</div>
+        <div class="desc-mod">Vacinas, vermifugação, check-ups</div>
+      </div>
+    </div>
+
+    <div class="modulo" onclick="navegar('conteudo')">
+      <div class="status">⚪</div>
+      <div class="info">
+        <div class="titulo-mod">Módulo 5 — Comportamento e Socialização</div>
+        <div class="desc-mod">Adestramento básico, convivência com outros animais</div>
+      </div>
+    </div>
+
+    <p class="secao-titulo mt-30">Conteúdo do módulo atual — Módulo 2</p>
+
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo</span>
+          <div class="titulo">Os primeiros 7 dias do seu pet em casa</div>
+          <div class="desc">Duração: 4min 32s</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb artigo">📄</div>
+        <div class="corpo">
+          <span class="tag">Artigo</span>
+          <div class="titulo">Como adaptar a alimentação do filhote</div>
+          <div class="desc">Tempo de leitura: 6 min</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb quiz">❓</div>
+        <div class="corpo">
+          <span class="tag">Quiz</span>
+          <div class="titulo">Fixação: primeiros dias</div>
+          <div class="desc">5 perguntas — teste o que aprendeu</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-between mt-30">
+      <button class="btn btn-neutro" onclick="navegar('trilhas')">← Módulo anterior</button>
+      <button class="btn btn-secundario" onclick="navegar('conteudo')">Próximo módulo →</button>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Equipe</a> |
+    <a onclick="navegar('home')">Contato</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 4 — EMERGÊNCIA -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-emergencia">
+  <div class="secao" style="background-color:#fef5f5; border-bottom:2px solid #c07070;">
+    <div style="display:flex; gap:16px; align-items:center;">
+      <div style="font-size:42px;">🚨</div>
+      <div>
+        <h1 style="font-size:22px; color:var(--cor-alerta); margin-bottom:6px;">ÁREA DE EMERGÊNCIA</h1>
+        <p style="font-size:13px; color:var(--cor-alerta); text-indent:0;">Informações rápidas para situações urgentes. ⚠️ Em casos graves, procure um veterinário imediatamente.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Selecione o sintoma</p>
+    <div class="grid-cards grid-4">
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">🤢</span><div class="nome">Vômito</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">💩</span><div class="nome">Diarreia</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">🌡️</span><div class="nome">Febre</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">😰</span><div class="nome">Falta de apetite</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">🩸</span><div class="nome">Sangramento</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">😵</span><div class="nome">Convulsão</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">🦴</span><div class="nome">Engasgo</div></div>
+      <div class="card-sintoma" onclick="navegar('busca')"><span class="icone">☠️</span><div class="nome">Intoxicação</div></div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Busca rápida por sintoma</p>
+    <div class="barra-busca">
+      <input type="text" placeholder="Descreva o que está acontecendo..." onkeydown="if(event.key==='Enter') navegar('busca')">
+      <button class="btn btn-secundario" onclick="navegar('busca')">Buscar</button>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Primeiros socorros — vídeos rápidos</p>
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo 1min</span>
+          <div class="titulo">Como agir em caso de engasgo</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo 1min</span>
+          <div class="titulo">Compressão em caso de sangramento</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb video">▶</div>
+        <div class="corpo">
+          <span class="tag">Vídeo 1min</span>
+          <div class="titulo">Como identificar intoxicação</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="secao">
+    <p class="secao-titulo">Contatos úteis</p>
+    <div class="contato-item">
+      <span class="label">🏥 Veterinários 24h próximos</span>
+      <button class="btn btn-secundario">Ver mapa</button>
+    </div>
+    <div class="contato-item">
+      <span class="label">☎️ Centros de toxicologia</span>
+      <button class="btn btn-secundario">Ver lista</button>
+    </div>
+    <div class="contato-item">
+      <span class="label">🚑 Hospitais veterinários</span>
+      <button class="btn btn-secundario">Ver lista</button>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Contato</a> |
+    <a onclick="navegar('home')">Privacidade</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 5 — BUSCA / RESULTADOS -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-busca">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt; <strong>Busca</strong>
+    </div>
+
+    <div class="barra-busca" style="margin-bottom:16px;">
+      <input type="text" id="campoBusca" value='meu cachorro está vomitando' onkeydown="if(event.key==='Enter') filtrarResultados()">
+      <button class="btn btn-secundario" onclick="filtrarResultados()">Buscar</button>
+    </div>
+
+    <div class="filtros">
+      <span class="filtro">Espécie: Cães ▼</span>
+      <span class="filtro">Tema: Saúde ▼</span>
+      <span class="filtro">Formato: Todos ▼</span>
+      <span class="filtro">Nível: Todos ▼</span>
+    </div>
+
+    <p style="font-size:13px; color:var(--cor-texto-claro); margin-bottom:16px;"><strong>12 resultados encontrados</strong></p>
+
+    <div class="resultado destaque" onclick="navegar('conteudo')">
+      <span class="tag-res" style="background:#f0d0d0; color:var(--cor-alerta);">⚠️ Emergência</span>
+      <div class="titulo-res">Vômito em cães: quando é grave?</div>
+      <div class="meta-res">Artigo | Saúde | Nível: Iniciante</div>
+      <div class="desc-res">Saiba identificar sinais de alerta e quando procurar o vet.</div>
+    </div>
+
+    <div class="resultado" onclick="navegar('conteudo')">
+      <span class="tag-res">🎥 Vídeo</span>
+      <div class="titulo-res">O que fazer quando seu cão vomita</div>
+      <div class="meta-res">Vídeo | Saúde | Duração: 3min 45s</div>
+      <div class="desc-res">Passo a passo para avaliar a situação e agir corretamente.</div>
+    </div>
+
+    <div class="resultado" onclick="navegar('conteudo')">
+      <span class="tag-res">📊 Infográfico</span>
+      <div class="titulo-res">Causas comuns de vômito em cães</div>
+      <div class="meta-res">Infográfico | Saúde | Nível: Iniciante</div>
+      <div class="desc-res">Visualize as principais causas e quando cada uma é preocupante.</div>
+    </div>
+
+    <div class="resultado" onclick="navegar('conteudo')">
+      <span class="tag-res">🎧 Podcast</span>
+      <div class="titulo-res">Saúde digestiva de cães</div>
+      <div class="meta-res">Áudio | Saúde | Duração: 12min</div>
+      <div class="desc-res">Veterinário explica problemas digestivos e prevenção.</div>
+    </div>
+
+    <div class="text-center mt-30">
+      <button class="btn btn-neutro">Carregar mais resultados...</button>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Contato</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 6 — CONTEÚDO MULTIMÍDIA -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-conteudo">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt;
+      <a onclick="navegar('especies')">Cães</a> &gt;
+      <a onclick="navegar('trilha-primeiro-pet')">Primeiro Pet</a> &gt;
+      <strong>Os primeiros 7 dias</strong>
+    </div>
+
+    <span class="tag" style="display:inline-block; background:#e8eef4; color:var(--cor-secundaria); font-size:11px; font-weight:bold; padding:3px 10px; border-radius:3px; margin-bottom:10px; text-transform:uppercase;">Vídeo</span>
+
+    <h1 style="font-size:24px; color:var(--cor-primaria); margin-bottom:10px;">Os primeiros 7 dias do seu pet em casa</h1>
+    <p style="font-size:13px; color:var(--cor-texto-claro); text-indent:0; margin-bottom:20px;">Duração: 4min 32s | Nível: Iniciante | Módulo 2 — Primeiros Dias</p>
+
+    <!-- PLAYER DE VÍDEO SIMULADO -->
+    <div class="player" style="margin-bottom:24px;">
+      <div class="icone-player" onclick="alert('▶ Reproduzindo vídeo... (simulação)')">▶</div>
+      <div class="info-player">
+        <h4>Os primeiros 7 dias do seu pet em casa</h4>
+        <p>Vídeo educativo — 4min 32s</p>
+      </div>
+    </div>
+
+    <p class="secao-titulo">Sobre este conteúdo</p>
+    <p style="text-indent:0; margin-bottom:16px;">
+      Neste vídeo, você vai aprender como preparar sua casa para receber um novo pet, quais itens são essenciais nos primeiros dias, como lidar com a ansiedade de separação e como estabelecer uma rotina saudável desde o início. O conteúdo é apresentado por veterinários e adestradores especializados.
+    </p>
+
+    <!-- GALERIA DE IMAGENS -->
+    <p class="secao-titulo mt-30">Galeria de imagens</p>
+    <div class="galeria">
+      <div class="item" onclick="alert('Ampliando imagem 1...')">📷</div>
+      <div class="item" onclick="alert('Ampliando imagem 2...')">📷</div>
+      <div class="item" onclick="alert('Ampliando imagem 3...')">📷</div>
+      <div class="item" onclick="alert('Ampliando imagem 4...')">📷</div>
+      <div class="item" onclick="alert('Ampliando imagem 5...')">📷</div>
+      <div class="item" onclick="alert('Ampliando imagem 6...')">📷</div>
+    </div>
+
+    <!-- ÁUDIO / PODCAST -->
+    <p class="secao-titulo mt-30">Ouça também (podcast)</p>
+    <div class="player">
+      <div class="icone-player" onclick="alert('▶ Reproduzindo áudio... (simulação)')">🎧</div>
+      <div class="info-player">
+        <h4>Saúde digestiva de cães — Episódio 12</h4>
+        <p>Podcast — 12min</p>
+      </div>
+    </div>
+
+    <!-- INFOGRÁFICO SVG -->
+    <p class="secao-titulo mt-30">Infográfico: Calendário de vacinas</p>
+    <div class="infografico">
+      <svg viewBox="0 0 600 200" style="width:100%; height:auto;">
+        <rect x="0" y="0" width="600" height="200" fill="#f5f7fa" rx="8"/>
+        <text x="300" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#2c3e50">Calendário de Vacinas — Cães</text>
+
+        <rect x="30" y="60" width="120" height="60" fill="#4a6a8a" rx="6"/>
+        <text x="90" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#fff" font-weight="bold">6-8 semanas</text>
+        <text x="90" y="105" text-anchor="middle" font-family="Arial" font-size="9" fill="#d0d8e0">V8 / V10</text>
+
+        <rect x="170" y="60" width="120" height="60" fill="#4a7a4a" rx="6"/>
+        <text x="230" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#fff" font-weight="bold">10-12 semanas</text>
+        <text x="230" y="105" text-anchor="middle" font-family="Arial" font-size="9" fill="#d0e8d0">Reforço V8</text>
+
+        <rect x="310" y="60" width="120" height="60" fill="#8a6a4a" rx="6"/>
+        <text x="370" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#fff" font-weight="bold">14-16 semanas</text>
+        <text x="370" y="105" text-anchor="middle" font-family="Arial" font-size="9" fill="#e8d0b0">Antirrábica</text>
+
+        <rect x="450" y="60" width="120" height="60" fill="#8a4a4a" rx="6"/>
+        <text x="510" y="85" text-anchor="middle" font-family="Arial" font-size="11" fill="#fff" font-weight="bold">Anual</text>
+        <text x="510" y="105" text-anchor="middle" font-family="Arial" font-size="9" fill="#e8b0b0">Reforço anual</text>
+
+        <text x="300" y="160" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">Consulte sempre um médico veterinário para o calendário ideal do seu cão.</text>
+      </svg>
+    </div>
+
+    <!-- CONTEÚDOS RELACIONADOS -->
+    <p class="secao-titulo mt-30">Conteúdos relacionados</p>
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb artigo">📄</div>
+        <div class="corpo">
+          <span class="tag">Artigo</span>
+          <div class="titulo">Como adaptar a alimentação do filhote</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb podcast">🎧</div>
+        <div class="corpo">
+          <span class="tag">Podcast</span>
+          <div class="titulo">Ansiedade de separação em filhotes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb quiz">❓</div>
+        <div class="corpo">
+          <span class="tag">Quiz</span>
+          <div class="titulo">Fixação: primeiros dias</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Contato</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 7 — TRILHAS (LISTAGEM) -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-trilhas">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt; <strong>Trilhas</strong>
+    </div>
+
+    <h1 style="font-size:24px; color:var(--cor-primaria); margin-bottom:10px;">Trilhas de Aprendizagem</h1>
+    <p style="text-indent:0; color:#555; margin-bottom:24px;">Percursos guiados para você aprender no seu ritmo, do básico ao avançado.</p>
+
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('trilha-primeiro-pet')">
+        <div class="thumb">🐾</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Primeiro Pet</div>
+          <div class="desc">Guia completo para tutores iniciantes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb">💉</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Saúde Preventiva</div>
+          <div class="desc">Calendário, vacinas e check-ups</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb">🎓</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Adestramento Básico</div>
+          <div class="desc">Comandos essenciais e socialização</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb">🍖</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Alimentação Saudável</div>
+          <div class="desc">Escolha da ração, porções e petiscos</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb">🛁</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Higiene e Estética</div>
+          <div class="desc">Banho, tosa e cuidados com dentes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('conteudo')">
+        <div class="thumb">🐕</div>
+        <div class="corpo">
+          <span class="tag">Trilha</span>
+          <div class="titulo">Socialização Canina</div>
+          <div class="desc">Convivência com outros animais e pessoas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Contato</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PÁGINA 8 — TEMAS -->
+<!-- ============================================ -->
+<section class="pagina" id="pagina-temas">
+  <div class="secao">
+    <div class="breadcrumb">
+      <a onclick="navegar('home')">Início</a> &gt; <strong>Temas</strong>
+    </div>
+
+    <h1 style="font-size:24px; color:var(--cor-primaria); margin-bottom:10px;">Temas</h1>
+    <p style="text-indent:0; color:#555; margin-bottom:24px;">Navegue por assunto: saúde, alimentação, comportamento, higiene e lazer.</p>
+
+    <div class="grid-cards grid-3">
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb">💊</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Saúde e Bem-Estar</div>
+          <div class="desc">Prevenção, doenças comuns, vacinação e primeiros socorros</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb">🍖</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Alimentação</div>
+          <div class="desc">Rações, dietas, alimentos proibidos e suplementos</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb">🎓</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Comportamento</div>
+          <div class="desc">Adestramento, socialização e problemas comuns</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb">🛁</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Higiene e Estética</div>
+          <div class="desc">Banho, tosa, escovação e cuidados com dentes</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('especies')">
+        <div class="thumb">🎾</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Lazer e Enriquecimento</div>
+          <div class="desc">Brincadeiras, brinquedos e passeios</div>
+        </div>
+      </div>
+      <div class="card-conteudo" onclick="navegar('emergencia')">
+        <div class="thumb" style="background-color:#8a4a4a;">🚨</div>
+        <div class="corpo">
+          <span class="tag">Tema</span>
+          <div class="titulo">Emergências</div>
+          <div class="desc">Sintomas comuns, primeiros socorros e contatos úteis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rodape">
+    <a onclick="navegar('home')">Sobre</a> |
+    <a onclick="navegar('home')">Contato</a>
+    <div class="copy">© 2026 Mundo Pet</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT — NAVEGAÇÃO -->
+<!-- ============================================ -->
+<script>
+  // Navegação entre páginas
+  function navegar(pagina) {
+    // Esconde todas as páginas
+    document.querySelectorAll('.pagina').forEach(function(p) {
+      p.classList.remove('ativa');
+    });
+
+    // Mostra a página solicitada
+    var alvo = document.getElementById('pagina-' + pagina);
+    if (alvo) {
+      alvo.classList.add('ativa');
+    }
+
+    // Atualiza o link ativo no menu
+    document.querySelectorAll('.nav-menu a').forEach(function(link) {
+      link.classList.remove('active');
+      if (link.getAttribute('data-pagina') === pagina) {
+        link.classList.add('active');
+      }
+    });
+
+    // Fecha o menu mobile se estiver aberto
+    document.getElementById('navMenu').classList.remove('aberto');
+
+    // Rola para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Menu mobile
+  function toggleMenu() {
+    document.getElementById('navMenu').classList.toggle('aberto');
+  }
+
+  // Ativar abas
+  function ativarAba(botao) {
+    var abas = botao.parentElement.querySelectorAll('.aba');
+    abas.forEach(function(a) { a.classList.remove('ativa'); });
+    botao.classList.add('ativa');
+  }
+
+  // Busca a partir da home
+  function irParaBusca() {
+    var termo = document.getElementById('buscaHome').value.trim();
+    if (termo) {
+      document.getElementById('campoBusca').value = termo;
+    }
+    navegar('busca');
+  }
+
+  // Filtrar resultados (simulação)
+  function filtrarResultados() {
+    var termo = document.getElementById('campoBusca').value.trim();
+    if (!termo) {
+      alert('Digite algo para buscar.');
+      return;
+    }
+    alert('Buscando por: "' + termo + '"\n\n(Simulação — 12 resultados encontrados)');
+  }
+
+  // Suporte a navegação por teclado (Enter nos cards)
+  document.querySelectorAll('.card-conteudo, .card-especie, .card-sintoma, .modulo, .resultado').forEach(function(el) {
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
